@@ -1,5 +1,6 @@
 .history/
 actr7.x/
+ACT-R/
 box2d/
 geomates/
 quicklisp.lisp
