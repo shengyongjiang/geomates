@@ -1,0 +1,18 @@
+version: '3'
+services:
+  geomates:
+    build:
+      context: .
+      dockerfile: geomates/Dockerfile
+    ports:
+      - "8000:8000"
+      - "45678:45678"
+    volumes:
+      # Mount specific files you want to modify
+      - ./geomates/levels.lisp:/usr/src/app/geomates/levels.lisp
+      - ./geomates/viewer.html:/usr/src/app/geomates/viewer.html
+      - ./geomates/model-dummy.lisp:/usr/src/app/geomates/model-dummy.lisp
+      - ./geomates/act-r-experiment.lisp:/usr/src/app/geomates/act-r-experiment.lisp
+      # Add more files as needed
+    command: sbcl --script geomates.lisp
+    working_dir: /usr/src/app/geomates
