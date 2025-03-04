@@ -49,16 +49,16 @@ tmux new-window -t "$SESSION:$WINDOW_INDEX" -n "$WINDOW_NAME" -c "$WORKING_DIR"
 # Allow time for window creation
 sleep 0.5
 
-# Create the 4-pane layout in the new window
-# Split horizontally to create pane 1 below pane 0
+# Create a simple layout with just the basic commands
+# Start with a single pane (pane 0)
+# Split horizontally to create pane 0 (top) and pane 1 (bottom)
 tmux split-window -v -t "$SESSION:$WINDOW_INDEX.0" -c "$WORKING_DIR"
-# Split pane 1 vertically to create pane 2 (left) and pane 3 (right)
-tmux split-window -h -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
-# Split horizontally to create pane 4 below pane 2
-tmux split-window -v -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
 
-# Adjust layout to match the desired pattern
-tmux select-layout -t "$SESSION:$WINDOW_INDEX" main-horizontal
+# Split pane 1 horizontally to create pane 1 (left) and pane 2 (right)
+tmux split-window -h -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
+
+# Split pane 1 vertically to create pane 1 (top) and pane 3 (bottom)
+tmux split-window -v -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
 
 # Allow layout to settle
 sleep 0.5
@@ -76,8 +76,10 @@ send_command() {
 send_command 0 "docker-compose down && docker-compose up -d && docker-compose logs -f"
 send_command 1 "sleep 1 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
 # Pane 2 is left without any command
-# send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \"models/model-dummy.lisp\")' --eval '(progn (sleep 2) (run-environment) (sleep 2) (geomates-experiment))'"
-send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \"models/model-dummy.lisp\")'"
+
+
+# Original command for reference
+send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \"models/model-dummy.lisp\")' --eval '(progn (sleep 2) (run-environment) (sleep 2))'"
 
 # Attach to the session if not already attached
 if [ -z "$TMUX" ]; then
