@@ -56,7 +56,12 @@
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
-  (chunk-type position-record disc-x disc-y rect-x rect-y phase)
+
+    ;; phase 0: initial status
+    ;; phase 1: found yellow disc
+    ;; phase 2: found red block
+    ;; phase 3: moving left
+    (chunk-type position-record disc-x disc-y rect-x rect-y phase)
 
   (add-dm
    (move-left) (move-right)
@@ -70,7 +75,7 @@
    (down-control isa control intention move-down button s)
    (left-control isa control intention move-left button a)
    (right-control isa control intention move-right button d)
-   (position-record-chunk isa position-record disc-x nil disc-y nil rect-x nil rect-y nil phase 0)
+    (position-record-chunk isa position-record disc-x nil disc-y nil rect-x nil rect-y nil phase 0)
    (first-goal isa goal state i-dont-know-who-i-am)
    ;; (first-goal isa goal state i-dont-know-where-to-go)
    )
@@ -128,35 +133,74 @@
         isa position-record
         disc-x =x
         disc-y =y
-        phase 0
+        rect-x nil
+        rect-y nil
+        phase 1
     =goal>
-        state attending-to-yellow-disc
+        state ready-to-find-red-block
     !output! ("---- 1.2 Moving attention to object at x: ~S y: ~S" =x =y)
 )
 
-(p process-yellow-disc-info
+
+  
+;; Step 1: Record the initial position of the yellow disc
+(p find-red-block
     =goal>
-        state attending-to-yellow-disc
-    =visual>
-        value "disc"
+        state ready-to-find-red-block
+    ?visual>
+        state free
+    ?imaginal>
+        state free
+==>
+    +visual-location>
+        value       "rect"
+        :attended   nil
+    =goal>
+        state searching-for-red-block
+    !output! ("---- 2.1 Searching for red block with specific criteria")
+)
+
+(p retry-find-red-block
+    =goal>
+        state searching-for-red-block
+    ?visual-location>
+        buffer failure
+    ?visual>
+        state free
+==>
+    =goal>
+        state ready-to-find-red-block
+    !output! ("---- 2.1a Search failed, trying again")
+)
+
+;; Only proceed to attend when we have a visual location
+(p attend-to-red-block
+    =goal>
+        state searching-for-red-block
+    =visual-location>
+        screen-x =x
+        screen-y =y
+    ?visual>
+        state free
     =imaginal>
         isa position-record
-        disc-x =x
-        disc-y =y
-        phase 0
+        disc-x =disc-x
+        disc-y =disc-y
 ==>
-    =imaginal>
-        phase 1
+    +visual>
+        cmd move-attention
+        screen-pos =visual-location
+    +imaginal>
+        isa position-record
+        disc-x =disc-x
+        disc-y =disc-y
+        rect-x =x
+        rect-y =y
+        phase 2
     =goal>
-        state ready-to-record-red-block
-    !output! ("---- 1.3 Yellow disc confirmed at position: x=~S y=~S" =x =y)
+        state ready-to-move-left
+    !output! ("---- 2.2 Moving attention to object at x: ~S y: ~S" =x =y)
 )
-;; todo : move this comment to the top of the file
-;; phase 0: initial status
-;; phase 1: found yellow disc
-;; phase 2: found red block
-;; phase 3: moving left
-
 
   (p want-to-move
      =goal>
