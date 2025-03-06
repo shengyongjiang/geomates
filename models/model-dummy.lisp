@@ -54,6 +54,9 @@
   ;; [might be obsolete] stuff the leftmost item
   (set-visloc-default screen-x lowest)
 
+    ;; Set imaginal-activation to automatically store imaginal buffer contents in DM
+    ;;   (sgp :imaginal-activation t)
+
   (chunk-type goal state intention)
   (chunk-type control intention button)
 
@@ -61,6 +64,8 @@
     ;; phase 1: found yellow disc
     ;; phase 2: found red block
     ;; phase 3: moving left
+    ;; phase 4: found yellow disc after moving
+    ;; phase 5: retrieved previous position record and compared with current position
     (chunk-type position-record disc-x disc-y rect-x rect-y phase)
 
   (add-dm
@@ -200,6 +205,120 @@
     =goal>
         state ready-to-move-left
     !output! ("---- 2.2 Moving attention to object at x: ~S y: ~S" =x =y)
+)
+
+(p move-left-to-location
+    =goal>
+        state ready-to-move-left
+    ?manual>
+        state free
+    =imaginal>
+==>
+    =goal>
+        state ready-re-find-yellow-disc
+    +manual>
+        cmd press-key
+        key a
+    !output! ("---- 2.3 Moving left")
+)
+
+(p ready-re-find-yellow-disc
+    =goal>
+        state ready-re-find-yellow-disc
+    ?visual>
+        state free
+==>
+    +visual-location>
+        value "disc"
+    =goal>
+        state searching-for-yellow-disc-after-move
+    !output! ("---- 3.1 Re-Find yellow disc after moving")
+)
+
+;; Handle the case where we can't find the disc after moving
+(p disc-search-failure-after-move
+    =goal>
+        state searching-for-yellow-disc-after-move
+    ?visual-location>
+        buffer failure
+==>
+    =goal>
+        state ready-re-find-yellow-disc
+    !output! ("---- 3.1a Failed to find disc after moving")
+)
+
+;; New productions to find and compare disc positions after moving
+
+;; Find the new location of the disc after moving
+(p find-disc-after-moving
+    =goal>
+        state searching-for-yellow-disc-after-move
+    =visual-location>
+        screen-x =new-x
+        screen-y =new-y
+    ?visual>
+        state free
+==>
+    +visual>
+        cmd move-attention  
+        screen-pos =visual-location
+    =goal>
+        state comparing-disc-positions
+    +imaginal>
+        isa position-record
+        disc-x =new-x
+        disc-y =new-y
+        phase 3  ; New phase for after movement
+    !output! ("---- 3.2 Found disc at new position: x=~S y=~S" =new-x =new-y)
+)
+
+;; Retrieve the previous position record from declarative memory
+(p retrieve-previous-position
+    =goal>
+        state comparing-disc-positions
+    ?retrieval>
+        state free
+==>
+    =goal>
+        state waiting-for-retrieval
+    +retrieval>
+        isa position-record
+        ;; phase 5  ;; The phase where both disc and rect positions were recorded
+    !output! ("---- 3.3 Retrieving previous position record from memory")
+    !output! ("---- DEBUG: Current DM contents:")
+    !eval! (dm)  ;; Print all chunks in declarative memory to help debug
+)
+
+;; Compare the current and previous positions
+(p compare-disc-positions
+    =goal>
+        state waiting-for-retrieval
+    =retrieval>
+        isa position-record
+        disc-x =old-x
+        disc-y =old-y
+    =imaginal>
+        disc-x =new-x
+        disc-y =new-y
+==>
+    =goal>
+        state positions-compared
+    !bind! =x-diff (- =new-x =old-x)
+    !bind! =y-diff (- =new-y =old-y)
+    !output! ("---- 3.3 Position comparison: Old position (x=~S, y=~S), New position (x=~S, y=~S)" 
+              =old-x =old-y =new-x =new-y)
+)
+
+;; Handle retrieval failure
+(p retrieval-failure-position
+    =goal>
+        state waiting-for-retrieval
+    ?retrieval>
+        buffer failure
+==>
+    =goal>
+        state retrieval-failed
+    !output! ("---- 3.5 Failed to retrieve previous position record")
 )
 
   (p want-to-move
