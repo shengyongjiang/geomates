@@ -56,6 +56,7 @@
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
+  (chunk-type position-record disc-x disc-y rect-x rect-y phase)
 
   (add-dm
    (move-left) (move-right)
@@ -64,15 +65,99 @@
    (i-dont-know-where-to-go)
    (something-should-change)
    (i-want-to-do-something)
+   (i-dont-know-who-i-am)
    (up-control isa control intention move-up button w)
    (down-control isa control intention move-down button s)
    (left-control isa control intention move-left button a)
    (right-control isa control intention move-right button d)
-   (first-goal isa goal state i-dont-know-where-to-go)
+   (position-record-chunk isa position-record disc-x nil disc-y nil rect-x nil rect-y nil phase 0)
+   (first-goal isa goal state i-dont-know-who-i-am)
+   ;; (first-goal isa goal state i-dont-know-where-to-go)
    )
 
   (goal-focus first-goal)
   
+;; Step 1: Record the initial position of the yellow disc
+(p find-yellow-disc
+    =goal>
+        state i-dont-know-who-i-am
+    ?visual>
+        state free
+    ?imaginal>
+        state free
+==>
+    +visual-location>
+        value       "disc"
+        :attended   nil
+    +imaginal>
+        isa position-record
+        phase 0
+    =goal>
+        state searching-for-yellow-disc
+    !output! ("---- 1.1 Searching for yellow disc with specific criteria")
+)
+
+;; Simple production to loop back when search fails
+(p retry-find-yellow-disc
+    =goal>
+        state searching-for-yellow-disc
+    ?visual-location>
+        buffer failure
+    ?visual>
+        state free
+==>
+    =goal>
+        state i-dont-know-who-i-am
+    !output! ("---- 1.1a Search failed, trying again")
+)
+
+;; Only proceed to attend when we have a visual location
+(p attend-to-yellow-disc
+    =goal>
+        state searching-for-yellow-disc
+    =visual-location>
+        screen-x =x
+        screen-y =y
+    ?visual>
+        state free
+==>
+    +visual>
+        cmd move-attention
+        screen-pos =visual-location
+    +imaginal>
+        isa position-record
+        disc-x =x
+        disc-y =y
+        phase 0
+    =goal>
+        state attending-to-yellow-disc
+    !output! ("---- 1.2 Moving attention to object at x: ~S y: ~S" =x =y)
+)
+
+(p process-yellow-disc-info
+    =goal>
+        state attending-to-yellow-disc
+    =visual>
+        value "disc"
+    =imaginal>
+        isa position-record
+        disc-x =x
+        disc-y =y
+        phase 0
+==>
+    =imaginal>
+        phase 1
+    =goal>
+        state ready-to-record-red-block
+    !output! ("---- 1.3 Yellow disc confirmed at position: x=~S y=~S" =x =y)
+)
+;; todo : move this comment to the top of the file
+;; phase 0: initial status
+;; phase 1: found yellow disc
+;; phase 2: found red block
+;; phase 3: moving left
+
+
   (p want-to-move
      =goal>
      state i-want-to-do-something
@@ -111,48 +196,48 @@
         state i-dont-know-where-to-go
      )
   
-  (p maybe-left
-     =goal>
-     state i-dont-know-where-to-go
-     ?manual>
-     state free
-==>
-     =goal>
-     state i-want-to-do-something
-     intention move-left
-     )
-  
-  (p maybe-right
+(p maybe-left
     =goal>
-     state i-dont-know-where-to-go
-     ?manual>
-     state free
+        state i-dont-know-where-to-go
+    ?manual>
+        state free
 ==>
-     =goal>
-     state i-want-to-do-something
-     intention move-right
+    =goal>
+        state i-want-to-do-something
+        intention move-left
 )
   
-  (p maybe-down
-     =goal>
-     state i-dont-know-where-to-go
-     ?manual>
-     state free
-==>
-     =goal>
-        state i-want-to-do-something
-     intention move-down
-     )
+;;   (p maybe-right
+;;     =goal>
+;;      state i-dont-know-where-to-go
+;;      ?manual>
+;;      state free
+;; ==>
+;;      =goal>
+;;      state i-want-to-do-something
+;;      intention move-right
+;; )
   
-  (p maybe-up
-     =goal>
-     state i-dont-know-where-to-go
-     ?manual>
-     state free
-==>
-    =goal>
-     state i-want-to-do-something
-     intention move-up
-     )
+;;   (p maybe-down
+;;      =goal>
+;;      state i-dont-know-where-to-go
+;;      ?manual>
+;;      state free
+;; ==>
+;;      =goal>
+;;         state i-want-to-do-something
+;;      intention move-down
+;;      )
+  
+;;   (p maybe-up
+;;      =goal>
+;;      state i-dont-know-where-to-go
+;;      ?manual>
+;;      state free
+;; ==>
+;;     =goal>
+;;      state i-want-to-do-something
+;;      intention move-up
+;;      )
   
   )
