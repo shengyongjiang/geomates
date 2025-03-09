@@ -55,7 +55,7 @@
   (set-visloc-default screen-x lowest)
 
     ;; Set imaginal-activation to automatically store imaginal buffer contents in DM
-    ;;   (sgp :imaginal-activation t)
+    (sgp :imaginal-activation t)
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
@@ -82,7 +82,7 @@
    (right-control isa control intention move-right button d)
     (position-record-chunk isa position-record disc-x nil disc-y nil rect-x nil rect-y nil phase 0)
    (first-goal isa goal state i-dont-know-who-i-am)
-   ;; (first-goal isa goal state i-dont-know-where-to-go)
+   ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
 
   (goal-focus first-goal)
@@ -213,13 +213,19 @@
     ?manual>
         state free
     =imaginal>
+        phase  =phase
+    !bind! =next-phase (+ =phase 1)
 ==>
     =goal>
         state ready-re-find-yellow-disc
     +manual>
         cmd press-key
         key a
-    !output! ("---- 2.3 Moving left")
+        duration 0.5
+    =imaginal>
+        isa position-record
+        phase  =next-phase
+    !output! ("---- 2.3 Moving left (phase ~S -> ~S)" =phase =next-phase)
 )
 
 (p ready-re-find-yellow-disc
@@ -230,6 +236,7 @@
 ==>
     +visual-location>
         value "disc"
+        ;; :attended nil         ;; Look for unattended disc
     =goal>
         state searching-for-yellow-disc-after-move
     !output! ("---- 3.1 Re-Find yellow disc after moving")
@@ -250,12 +257,14 @@
 ;; New productions to find and compare disc positions after moving
 
 ;; Find the new location of the disc after moving
-(p find-disc-after-moving
+(p re-attend-to-yellow-disc
     =goal>
         state searching-for-yellow-disc-after-move
     =visual-location>
-        screen-x =new-x
-        screen-y =new-y
+        screen-x =new-disc-x
+    =imaginal>
+        isa position-record
+        disc-x =old-disc-x
     ?visual>
         state free
 ==>
@@ -263,52 +272,74 @@
         cmd move-attention  
         screen-pos =visual-location
     =goal>
-        state comparing-disc-positions
-    +imaginal>
+        state ready-re-find-red-block
+    =imaginal>
         isa position-record
-        disc-x =new-x
-        disc-y =new-y
-        phase 3  ; New phase for after movement
-    !output! ("---- 3.2 Found disc at new position: x=~S y=~S" =new-x =new-y)
+        disc-x =new-disc-x
+        phase 4         ;; New phase for after movement
+    !bind! =disc-equal (if (eql =new-disc-x =old-disc-x) t nil)
+    ;; !output! ("---- 3.4 Found disc at a same position: x=~S(disc-equal: ~S)" 
+    ;;           =new-disc-x =disc-equal )
+    !output! ("---- 3.4 ~A: x=~S" 
+            (if =disc-equal "Found disc at a same position" "Found disc at a new position")
+            =new-disc-x)
+)
+
+;;;;; to do : move location to the red block
+(p ready-re-find-red-block
+    =goal>
+        state ready-re-find-red-block
+    ?visual>
+        state free
+==>
+    +visual-location>
+        value "rect"
+        ;; :attended nil         ;; Look for unattended rect
+    =goal>
+        state searching-for-red-block-after-move
+    !output! ("---- 3.5 Re-Find red block after moving")
+)
+
+(p re-attend-to-red-block
+    =goal>
+        state searching-for-red-block-after-move
+    =visual-location>
+        screen-x =new-rect-x
+    =imaginal>
+        isa position-record
+        rect-x =old-rect-x
+    ?visual>
+        state free
+==>
+    +visual>
+        cmd move-attention  
+        screen-pos =visual-location
+    =goal>
+        state debug-production
+    =imaginal>
+        isa position-record
+        rect-x =new-rect-x
+        phase 5         ;; New phase for after movement
+    !bind! =rect-equal (if (eql =new-rect-x =old-rect-x) t nil)  ;; Check if x coordinates are equal
+    ;; !output! ("---- 3.7 Found red block at new position: x=~S(rect-equal: ~S)" =new-rect-x =rect-equal)
+    !output! ("---- 3.7 ~A: x=~S" 
+            (if =rect-equal "Found red block at a same position" "Found red block at a new position")
+            =new-rect-x)
 )
 
 ;; Retrieve the previous position record from declarative memory
-(p retrieve-previous-position
+(p development-mode
     =goal>
-        state comparing-disc-positions
-    ?retrieval>
-        state free
+        state debug-production
 ==>
     =goal>
-        state waiting-for-retrieval
-    +retrieval>
-        isa position-record
-        ;; phase 5  ;; The phase where both disc and rect positions were recorded
-    !output! ("---- 3.3 Retrieving previous position record from memory")
-    !output! ("---- DEBUG: Current DM contents:")
+        state debug-production
+    !output! ("---- debug-production ----")
     !eval! (dm)  ;; Print all chunks in declarative memory to help debug
 )
 
-;; Compare the current and previous positions
-(p compare-disc-positions
-    =goal>
-        state waiting-for-retrieval
-    =retrieval>
-        isa position-record
-        disc-x =old-x
-        disc-y =old-y
-    =imaginal>
-        disc-x =new-x
-        disc-y =new-y
-==>
-    =goal>
-        state positions-compared
-    !bind! =x-diff (- =new-x =old-x)
-    !bind! =y-diff (- =new-y =old-y)
-    !output! ("---- 3.3 Position comparison: Old position (x=~S, y=~S), New position (x=~S, y=~S)" 
-              =old-x =old-y =new-x =new-y)
-)
 
+;; ???? 
 ;; Handle retrieval failure
 (p retrieval-failure-position
     =goal>
