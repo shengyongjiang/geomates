@@ -67,7 +67,7 @@
     ;; phase 30: moving left
     ;; phase 40: found yellow disc after moving
     ;; phase 50: retrieved previous position record and compared with current position
-    (chunk-type position-record disc-x disc-y rect-x rect-y who-i-am phase)
+    (chunk-type position-record is-disc disc-x disc-y is-block rect-x rect-y who-i-am phase)
 
   (add-dm
    (move-left) (move-right)
@@ -77,11 +77,13 @@
    (something-should-change)
    (i-want-to-do-something)
    (i-dont-know-who-i-am)
+   (yellow-disc)
+   (red-block)
    (up-control isa control intention move-up button w)
    (down-control isa control intention move-down button s)
    (left-control isa control intention move-left button a)
    (right-control isa control intention move-right button d)
-    (position-record-chunk isa position-record disc-x nil disc-y nil rect-x nil rect-y nil who-i-am nil phase 0)
+   (position-record-chunk isa position-record is-disc 0 disc-x nil disc-y nil is-block 0 rect-x nil rect-y nil phase 0)
    (first-goal isa goal state i-dont-know-who-i-am)
    ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
@@ -296,16 +298,15 @@
         screen-pos =visual-location
     =goal>
         state ready-re-find-red-block
-    !bind! =disc-equal (if (eql =new-disc-x =old-disc-x) t nil)
+    !bind! =is-disc (if (eql =new-disc-x =old-disc-x) 0 1)
     =imaginal>
         isa position-record
         disc-x =new-disc-x
-        who-i-am !eval! (if (not =disc-equal) "yellow-disc" nil)
+        is-disc =is-disc
         phase 40
-    !output! ("---- 3.4 Found disc at position: x=~S" =new-disc-x)
+    !output! ("---- 3.4 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
 )
 
-;;;;; to do : move location to the red block
 (p ready-re-find-red-block
     =goal>
         state ready-re-find-red-block
@@ -336,12 +337,13 @@
         screen-pos =visual-location
     =goal>
         state debug-production
+    !bind! =is-block (if (eql =new-rect-x =old-rect-x) 0 1)
     =imaginal>
         isa position-record
         rect-x =new-rect-x
-        phase 50         ;; New phase for after movement
-    !bind! =rect-equal (if (eql =new-rect-x =old-rect-x) t nil)  ;; Check if x coordinates are equal
-    !output! ("---- 3.7 Found red block at new position: x=~S(rect-equal: ~S)" =new-rect-x =rect-equal)
+        is-block =is-block
+        phase 50
+    !output! ("---- 3.7 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
 )
 
 ;; Retrieve the previous position record from declarative memory
@@ -352,7 +354,7 @@
     =goal>
         state debug-production
     !output! ("---- debug-production ----")
-    !eval! (dm)  ;; Print all chunks in declarative memory to help debug
+    ;; !eval! (dm)  ;; Print all chunks in declarative memory to help debug
 )
 
 
