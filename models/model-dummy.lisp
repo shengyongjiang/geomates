@@ -54,8 +54,9 @@
   ;; [might be obsolete] stuff the leftmost item
   (set-visloc-default screen-x lowest)
 
-    ;; Set imaginal-activation to automatically store imaginal buffer contents in DM
-    (sgp :imaginal-activation t)
+  ;; Set global parameters
+  (sgp :imaginal-activation t                   ;; Store imaginal buffer contents in DM
+       :time-master-start-increment 60.0)       ;; Set time limit to 60 seconds
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
@@ -67,7 +68,13 @@
     ;; phase 30: moving left
     ;; phase 40: found yellow disc after moving
     ;; phase 50: retrieved previous position record and compared with current position
-    (chunk-type position-record is-disc disc-x disc-y is-block rect-x rect-y who-i-am phase)
+
+    ;; disc speed: 0 not moving, 1 moving right once 2 move right twice etc, and - is moving left
+    ;; block expand: 0 not expand, 1 expand  once 2 expand twice etc
+    (chunk-type position-record 
+                                is-disc  speed disc-x disc-y 
+                                is-block expand rect-x rect-y who-i-am phase
+                                )
 
   (add-dm
    (move-left) (move-right)
@@ -83,12 +90,16 @@
    (down-control isa control intention move-down button s)
    (left-control isa control intention move-left button a)
    (right-control isa control intention move-right button d)
-   (position-record-chunk isa position-record is-disc 0 disc-x nil disc-y nil is-block 0 rect-x nil rect-y nil phase 0)
+   (position-record-chunk isa position-record is-disc 0 speed 0 disc-x nil disc-y nil is-block 0 rect-x nil rect-y nil phase 0)
    (first-goal isa goal state i-dont-know-who-i-am)
+   (second-goal isa goal state searching-for-diamond)
+   (third-goal isa goal state random-moving-right-jump intention test-initialize)
    ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
 
-  (goal-focus first-goal)
+  ;; (goal-focus first-goal)
+;;   (goal-focus second-goal)
+  (goal-focus third-goal)
   
 ;; Step 1: Record the initial position of the yellow disc
 (p find-yellow-disc
@@ -336,7 +347,7 @@
         cmd move-attention  
         screen-pos =visual-location
     =goal>
-        state debug-production
+        state searching-for-diamond
     !bind! =is-block (if (eql =new-rect-x =old-rect-x) 0 1)
     =imaginal>
         isa position-record
@@ -344,6 +355,111 @@
         is-block =is-block
         phase 50
     !output! ("---- 3.7 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
+)
+
+;; Step 2 Find the nearest diamond from the disc
+;; (p find-nearest-diamond
+;;     =goal>
+;;         state searching-for-diamond
+;;     =imaginal>
+;;         isa position-record
+;;         disc-x =disc-x
+;;         is-disc =1
+;;     ?visual>
+;;         state free
+;; ==>
+;;     +visual-location>
+;;         value "diamond"
+;;         screen-x closest =disc-x
+;;     =goal>
+;;         state evaluating-diamond
+;;     !output! ("---- 2.1.1 Finding nearest diamond from disc at x=~S" =disc-x)
+;; )
+
+
+;; Step 3 random moving right jump
+;; todo  only for testing
+(p initialize-imaginal
+    =goal>
+        state random-moving-right-jump
+        intention test-initialize
+    ?imaginal>
+        state free
+        buffer empty
+==>
+    =goal>
+        state random-moving-right-jump
+        intention move-right
+    +imaginal>
+        isa position-record
+        speed 0
+    !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
+)
+
+(p perform-move-righ-t
+    =goal>
+        state random-moving-right-jump
+        intention move-right
+    =imaginal>
+        isa position-record
+        speed =current-speed
+    ?manual>
+        state free
+==>
+    !bind! =new-speed (+ =current-speed 1)
+    =imaginal>
+        speed =new-speed
+    +manual>
+        cmd press-key
+        key d
+        duration 0.1
+    !output! ("---- 3.1.1 Moving right with 'd' (move ~S of 2)" =new-speed)
+)
+
+(p ready-for-jump-after-move-right
+    =goal>
+        state random-moving-right-jump
+        intention move-right
+    =imaginal>
+        speed =speed
+        > speed 2
+    ?manual>
+        state free
+==>
+    =goal>
+        state random-moving-right-jump
+        intention jump
+    !output! ("---- 3.1.2 Ready for jump after moving right")
+)
+
+(p perform-jump
+    =goal>
+        state random-moving-right-jump
+        intention jump
+    ?manual>
+        state free
+==>
+    =goal>
+        state random-moving-right-jump
+        intention jump-key-pressed
+    +manual>
+        cmd press-key
+        key w
+        duration 0.1
+    !output! ("---- 3.1.3 Performing jump with 'w' after moving right")
+)
+
+(p complete-action
+    =goal>
+        state random-moving-right-jump
+        intention jump-key-pressed
+    ?manual>
+        state free
+==>
+    =goal>
+        state random-moving-right-jump
+        intention jump
+    !output! ("---- 3.1.4 Action completed, ready to jump or move right")
 )
 
 ;; Retrieve the previous position record from declarative memory
