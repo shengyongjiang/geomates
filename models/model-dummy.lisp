@@ -97,9 +97,9 @@
    ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
 
-  ;; (goal-focus first-goal)
+   (goal-focus first-goal)
 ;;   (goal-focus second-goal)
-  (goal-focus third-goal)
+  ;;(goal-focus third-goal)
   
 ;; Step 1: Record the initial position of the yellow disc
 (p find-yellow-disc
@@ -118,7 +118,7 @@
         phase 0
     =goal>
         state searching-for-yellow-disc
-    !output! ("---- 1.1 Searching for yellow disc with specific criteria")
+    !output! ("---- 1.1.1 Searching for yellow disc with specific criteria")
 )
 
 ;; Simple production to loop back when search fails
@@ -132,7 +132,7 @@
 ==>
     =goal>
         state i-dont-know-who-i-am
-    !output! ("---- 1.1a Search failed, trying again")
+    !output! ("---- 1.1.2 Search failed, trying again")
 )
 
 ;; Only proceed to attend when we have a visual location
@@ -144,20 +144,19 @@
         screen-y =y
     ?visual>
         state free
+    =imaginal>
 ==>
     +visual>
         cmd move-attention
         screen-pos =visual-location
-    +imaginal>
-        isa position-record
+    =imaginal>
+        speed 0
         disc-x =x
         disc-y =y
-        rect-x nil
-        rect-y nil
         phase 10
     =goal>
         state ready-to-find-red-block
-    !output! ("---- 1.2 Moving attention to object at x: ~S y: ~S" =x =y)
+    !output! ("---- 1.2.1 Moving attention to object at x: ~S y: ~S" =x =y)
 )
 
 
@@ -176,7 +175,7 @@
         :attended   nil
     =goal>
         state searching-for-red-block
-    !output! ("---- 2.1 Searching for red block with specific criteria")
+    !output! ("---- 1.2.2 Searching for red block with specific criteria")
 )
 
 (p retry-find-red-block
@@ -189,7 +188,7 @@
 ==>
     =goal>
         state ready-to-find-red-block
-    !output! ("---- 2.1a Search failed, trying again")
+    !output! ("---- 1.2.3 Search failed, trying again")
 )
 
 ;; Only proceed to attend when we have a visual location
@@ -202,28 +201,23 @@
     ?visual>
         state free
     =imaginal>
-        isa position-record
-        disc-x =disc-x
-        disc-y =disc-y
 ==>
     +visual>
         cmd move-attention
         screen-pos =visual-location
-    +imaginal>
-        isa position-record
-        disc-x =disc-x
-        disc-y =disc-y
+    =imaginal>
+        expand 0
         rect-x =x
         rect-y =y
         phase 30
     =goal>
-        state ready-to-move-left
-    !output! ("---- 2.2 Moving attention to object at x: ~S y: ~S" =x =y)
+        state ready-to-move-right
+    !output! ("---- 1.2.4 Moving attention to object at x: ~S y: ~S" =x =y)
 )
 
-(p move-left-to-location-continue
+(p move-right-to-location-continue
     =goal>
-        state ready-to-move-left
+        state ready-to-move-right
     =imaginal>
         phase  =phase
         - phase  33
@@ -232,20 +226,20 @@
     !bind! =next-phase (+ =phase 1)
 ==>
     =goal>
-        state ready-to-move-left
+        state ready-to-move-right
     +manual>
         cmd press-key
-        key a
+        key d
         duration 0.5
     =imaginal>
         isa position-record
         phase  =next-phase
-    !output! ("---- 2.3 Moving left, phase ~S -> ~S" =phase =next-phase)
+    !output! ("---- 1.2.5 Moving right, phase ~S -> ~S" =phase =next-phase)
 )
 
-(p move-left-to-location-end
+(p move-right-to-location-end
     =goal>
-        state ready-to-move-left
+        state ready-to-move-right
     =imaginal>
         phase  =phase
         > phase  31
@@ -256,12 +250,12 @@
         state ready-re-find-yellow-disc
     +manual>
         cmd press-key
-        key a
+        key d
         duration 0.2
     =imaginal>
         isa position-record
         phase  40
-    !output! ("---- 2.3 Moving left, phase ~S(ending loop)" =phase)
+    !output! ("---- 1.2.6 Moving right, phase ~S(ending loop)" =phase)
 )
 
 (p ready-re-find-yellow-disc
@@ -275,7 +269,7 @@
         ;; :attended nil         ;; Look for unattended disc
     =goal>
         state searching-for-yellow-disc-after-move
-    !output! ("---- 3.1 Re-Find yellow disc after moving")
+    !output! ("---- 1.3.1 Re-Find yellow disc after moving")
 )
 
 ;; Handle the case where we can't find the disc after moving
@@ -287,7 +281,7 @@
 ==>
     =goal>
         state ready-re-find-yellow-disc
-    !output! ("---- 3.1a Failed to find disc after moving")
+    !output! ("---- 1.3.2 Failed to find disc after moving")
 )
 
 ;; New productions to find and compare disc positions after moving
@@ -315,7 +309,7 @@
         disc-x =new-disc-x
         is-disc =is-disc
         phase 40
-    !output! ("---- 3.4 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
+    !output! ("---- 1.3.3 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
 )
 
 (p ready-re-find-red-block
@@ -329,7 +323,7 @@
         ;; :attended nil         ;; Look for unattended rect
     =goal>
         state searching-for-red-block-after-move
-    !output! ("---- 3.5 Re-Find red block after moving")
+    !output! ("---- 1.3.4 Re-Find red block after moving")
 )
 
 (p re-attend-to-red-block
@@ -347,14 +341,16 @@
         cmd move-attention  
         screen-pos =visual-location
     =goal>
-        state searching-for-diamond
+        ;; state searching-for-diamond
+        state random-moving-right-jump
+        intention move-right
     !bind! =is-block (if (eql =new-rect-x =old-rect-x) 0 1)
     =imaginal>
         isa position-record
         rect-x =new-rect-x
         is-block =is-block
         phase 50
-    !output! ("---- 3.7 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
+    !output! ("---- 1.3.5 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
 )
 
 ;; Step 2 Find the nearest diamond from the disc
@@ -379,30 +375,32 @@
 
 ;; Step 3 random moving right jump
 ;; todo  only for testing
-(p initialize-imaginal
-    =goal>
-        state random-moving-right-jump
-        intention test-initialize
-    ?imaginal>
-        state free
-        buffer empty
-==>
-    =goal>
-        state random-moving-right-jump
-        intention move-right
-    +imaginal>
-        isa position-record
-        speed 0
-    !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
-)
+;; (p initialize-imaginal
+;;     =goal>
+;;         state random-moving-right-jump
+;;         intention test-initialize
+;;     ?imaginal>
+;;         state free
+;;         buffer empty
+;; ==>
+;;     =goal>
+;;         state random-moving-right-jump
+;;         intention move-right
+;;     +imaginal>
+;;         isa position-record
+;;         speed 0
+;;     !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
+;; )
 
-(p perform-move-righ-t
+(p perform-move-right
     =goal>
         state random-moving-right-jump
         intention move-right
     =imaginal>
         isa position-record
-        speed =current-speed
+        speed   =current-speed
+        ;; is-disc =1
+        ;; is-rect =1
     ?manual>
         state free
 ==>
@@ -412,7 +410,10 @@
     +manual>
         cmd press-key
         key d
-        duration 0.1
+        duration 0.2
+    =goal>
+        state random-moving-right-jump
+        intention move-right
     !output! ("---- 3.1.1 Moving right with 'd' (move ~S of 2)" =new-speed)
 )
 
@@ -421,14 +422,18 @@
         state random-moving-right-jump
         intention move-right
     =imaginal>
-        speed =speed
-        > speed 2
+        isa position-record
+        ;; is-disc =1
+        ;; is-rect =1
+        speed   =current-speed
+        > current-speed 3
     ?manual>
         state free
 ==>
     =goal>
         state random-moving-right-jump
         intention jump
+    =imaginal>
     !output! ("---- 3.1.2 Ready for jump after moving right")
 )
 
@@ -436,16 +441,21 @@
     =goal>
         state random-moving-right-jump
         intention jump
+    =imaginal>
+        isa position-record
+        ;; is-disc =1
+        ;; is-rect =1
     ?manual>
         state free
 ==>
     =goal>
         state random-moving-right-jump
         intention jump-key-pressed
+    =imaginal>
     +manual>
         cmd press-key
         key w
-        duration 0.1
+        duration 0.2
     !output! ("---- 3.1.3 Performing jump with 'w' after moving right")
 )
 
@@ -453,12 +463,18 @@
     =goal>
         state random-moving-right-jump
         intention jump-key-pressed
+    =imaginal>
+        ;; isa position-record
+        ;; is-disc =1
+        ;; is-rect =1
     ?manual>
         state free
 ==>
     =goal>
         state random-moving-right-jump
-        intention jump
+        intention move-right
+    =imaginal>
+        speed 0
     !output! ("---- 3.1.4 Action completed, ready to jump or move right")
 )
 

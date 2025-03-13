@@ -74,12 +74,11 @@ send_command() {
 
 # Execute commands in respective panes
 send_command 0 "docker-compose down && docker-compose up -d && docker-compose logs -f"
-send_command 1 "sleep 1 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
-# Pane 2 is left without any command
-
+send_command 1 "sleep 2 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
+send_command 2 "sleep 2 && telnet localhost 45678"
 
 # Original command for reference
-send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \"models/model-dummy.lisp\")' --eval '(progn (sleep 2) (run-environment) (sleep 2))'"
+send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run-environment))'"
 
 # Attach to the session if not already attached
 if [ -z "$TMUX" ]; then
