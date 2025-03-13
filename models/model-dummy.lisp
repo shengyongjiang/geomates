@@ -121,20 +121,6 @@
     !output! ("---- 1.1.1 Searching for yellow disc with specific criteria")
 )
 
-;; Simple production to loop back when search fails
-(p retry-find-yellow-disc
-    =goal>
-        state searching-for-yellow-disc
-    ?visual-location>
-        buffer failure
-    ?visual>
-        state free
-==>
-    =goal>
-        state i-dont-know-who-i-am
-    !output! ("---- 1.1.2 Search failed, trying again")
-)
-
 ;; Only proceed to attend when we have a visual location
 (p attend-to-yellow-disc
     =goal>
@@ -158,8 +144,6 @@
         state ready-to-find-red-block
     !output! ("---- 1.2.1 Moving attention to object at x: ~S y: ~S" =x =y)
 )
-
-
   
 ;; Step 1: Record the initial position of the yellow disc
 (p find-red-block
@@ -176,19 +160,6 @@
     =goal>
         state searching-for-red-block
     !output! ("---- 1.2.2 Searching for red block with specific criteria")
-)
-
-(p retry-find-red-block
-    =goal>
-        state searching-for-red-block
-    ?visual-location>
-        buffer failure
-    ?visual>
-        state free
-==>
-    =goal>
-        state ready-to-find-red-block
-    !output! ("---- 1.2.3 Search failed, trying again")
 )
 
 ;; Only proceed to attend when we have a visual location
