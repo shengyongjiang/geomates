@@ -55,8 +55,11 @@
   (set-visloc-default screen-x lowest)
 
   ;; Set global parameters
-  (sgp :imaginal-activation t                   ;; Store imaginal buffer contents in DM
-       :time-master-start-increment 60.0)       ;; Set time limit to 60 seconds
+    (sgp 
+        :step t
+        :trace-detail high
+        :v t
+    )        
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
@@ -142,7 +145,7 @@
         phase 10
     =goal>
         state ready-to-find-red-block
-    !output! ("---- 1.2.1 Moving attention to object at x: ~S y: ~S" =x =y)
+    !output! ("---- 1.1.2 Moving attention to object at x: ~S y: ~S" =x =y)
 )
   
 ;; Step 1: Record the initial position of the yellow disc
@@ -159,7 +162,7 @@
         :attended   nil
     =goal>
         state searching-for-red-block
-    !output! ("---- 1.2.2 Searching for red block with specific criteria")
+    !output! ("---- 1.1.3 Searching for red block with specific criteria")
 )
 
 ;; Only proceed to attend when we have a visual location
@@ -183,7 +186,7 @@
         phase 30
     =goal>
         state ready-to-move-right
-    !output! ("---- 1.2.4 Moving attention to object at x: ~S y: ~S" =x =y)
+    !output! ("---- 1.1.4 Moving attention to object at x: ~S y: ~S" =x =y)
 )
 
 (p move-right-to-location-continue
@@ -191,13 +194,13 @@
         state ready-to-move-right
     =imaginal>
         phase  =phase
-        - phase  33
+        ;; - phase  33
     ?manual>
         state free
     !bind! =next-phase (+ =phase 1)
 ==>
     =goal>
-        state ready-to-move-right
+        state ready-re-find-yellow-disc
     +manual>
         cmd press-key
         key d
@@ -205,29 +208,29 @@
     =imaginal>
         isa position-record
         phase  =next-phase
-    !output! ("---- 1.2.5 Moving right, phase ~S -> ~S" =phase =next-phase)
+    !output! ("---- 1.1.5 Moving right, phase ~S -> ~S" =phase =next-phase)
 )
 
-(p move-right-to-location-end
-    =goal>
-        state ready-to-move-right
-    =imaginal>
-        phase  =phase
-        > phase  31
-    ?manual>
-        state free
-==>
-    =goal>
-        state ready-re-find-yellow-disc
-    +manual>
-        cmd press-key
-        key d
-        duration 0.2
-    =imaginal>
-        isa position-record
-        phase  40
-    !output! ("---- 1.2.6 Moving right, phase ~S(ending loop)" =phase)
-)
+;; (p move-right-to-location-end
+;;     =goal>
+;;         state ready-to-move-right
+;;     =imaginal>
+;;         phase  =phase
+;;         > phase  31
+;;     ?manual>
+;;         state free
+;; ==>
+;;     =goal>
+;;         state ready-re-find-yellow-disc
+;;     +manual>
+;;         cmd press-key
+;;         key d
+;;         duration 0.2
+;;     =imaginal>
+;;         isa position-record
+;;         phase  40
+;;     !output! ("---- 1.2.6 Moving right, phase ~S(ending loop)" =phase)
+;; )
 
 (p ready-re-find-yellow-disc
     =goal>
@@ -240,20 +243,20 @@
         ;; :attended nil         ;; Look for unattended disc
     =goal>
         state searching-for-yellow-disc-after-move
-    !output! ("---- 1.3.1 Re-Find yellow disc after moving")
+    !output! ("---- 1.1.6 Re-Find yellow disc after moving")
 )
 
-;; Handle the case where we can't find the disc after moving
-(p disc-search-failure-after-move
-    =goal>
-        state searching-for-yellow-disc-after-move
-    ?visual-location>
-        buffer failure
-==>
-    =goal>
-        state ready-re-find-yellow-disc
-    !output! ("---- 1.3.2 Failed to find disc after moving")
-)
+;; ;; Handle the case where we can't find the disc after moving
+;; (p disc-search-failure-after-move
+;;     =goal>
+;;         state searching-for-yellow-disc-after-move
+;;     ?visual-location>
+;;         buffer failure
+;; ==>
+;;     =goal>
+;;         state ready-re-find-yellow-disc
+;;     !output! ("---- 1.3.2 Failed to find disc after moving")
+;; )
 
 ;; New productions to find and compare disc positions after moving
 
@@ -280,7 +283,7 @@
         disc-x =new-disc-x
         is-disc =is-disc
         phase 40
-    !output! ("---- 1.3.3 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
+    !output! ("---- 1.1.7 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
 )
 
 (p ready-re-find-red-block
@@ -294,7 +297,7 @@
         ;; :attended nil         ;; Look for unattended rect
     =goal>
         state searching-for-red-block-after-move
-    !output! ("---- 1.3.4 Re-Find red block after moving")
+    !output! ("---- 1.1.8 Re-Find red block after moving")
 )
 
 (p re-attend-to-red-block
@@ -313,15 +316,53 @@
         screen-pos =visual-location
     =goal>
         ;; state searching-for-diamond
-        state random-moving-right-jump
-        intention move-right
+        state find-next-action
     !bind! =is-block (if (eql =new-rect-x =old-rect-x) 0 1)
     =imaginal>
         isa position-record
         rect-x =new-rect-x
         is-block =is-block
         phase 50
-    !output! ("---- 1.3.5 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
+    !output! ("---- 1.1.9 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
+)
+
+(p find-next-action-if-neither
+    =goal>
+        state find-next-action
+    =imaginal>
+        is-disc =0
+        is-block =0
+==>
+    =imaginal>
+    =goal>
+        state ready-to-move-right
+    !output! ("---- 1.1.10 Don't know I am yellow disc or red block, move right again to find")
+)
+
+(p find-next-action-if-disc
+    =goal>
+        state find-next-action
+    =imaginal>
+        is-disc =1
+==>
+    =imaginal>
+    =goal>
+        state       random-moving-right-jump
+        intention   move-right
+    !output! ("---- 1.2.1 Ready for random moving right jump")
+)
+
+(p find-next-action-if-block
+    =goal>
+        state find-next-action
+    =imaginal>
+        is-block =1
+==[]>
+    =imaginal>
+    =goal>
+        state       random-moving-right-jump
+        intention   move-right
+    !output! ("---- 1.2.2 Ready for implment rect movement")
 )
 
 ;; Step 2 Find the nearest diamond from the disc
@@ -440,7 +481,7 @@
         ;; is-rect =1
     ?manual>
         state free
-==>
+==0>
     =goal>
         state random-moving-right-jump
         intention move-right
