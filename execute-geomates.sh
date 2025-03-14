@@ -51,17 +51,22 @@ sleep 0.5
 
 # Create a simple layout with just the basic commands
 # Start with a single pane (pane 0)
-# Split horizontally to create pane 0 (top) and pane 1 (bottom)
+# Split horizontally to create pane 0 (top) and pane 3 (bottom)
 tmux split-window -v -t "$SESSION:$WINDOW_INDEX.0" -c "$WORKING_DIR"
 
-# Split pane 1 horizontally to create pane 1 (left) and pane 2 (right)
-tmux split-window -h -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
+# Split pane 0 vertically to create pane 0 (left) and pane 1 (right)
+tmux split-window -h -t "$SESSION:$WINDOW_INDEX.0" -c "$WORKING_DIR"
 
-# Split pane 1 vertically to create pane 1 (top) and pane 3 (bottom)
-tmux split-window -v -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
+# Split pane 1 vertically to create pane 1 (left) and pane 2 (right)
+tmux split-window -h -t "$SESSION:$WINDOW_INDEX.1" -c "$WORKING_DIR"
 
 # Allow layout to settle
 sleep 0.5
+
+# Resize the top panes to make the first row smaller
+tmux resize-pane -t "$SESSION:$WINDOW_INDEX.0" -y 10
+tmux resize-pane -t "$SESSION:$WINDOW_INDEX.1" -y 10
+tmux resize-pane -t "$SESSION:$WINDOW_INDEX.2" -y 10
 
 # Function to send commands to a specific pane
 send_command() {
@@ -78,7 +83,10 @@ send_command 1 "sleep 2 && open -a \"Google Chrome\" \"http://localhost:8081/vie
 send_command 2 "sleep 2 && telnet localhost 45678"
 
 # Original command for reference
-send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\" --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run-environment))'"
+send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
+
+# Select pane 3 (second row) to make it active
+tmux select-pane -t "$SESSION:$WINDOW_INDEX.3"
 
 # Attach to the session if not already attached
 if [ -z "$TMUX" ]; then
