@@ -28,8 +28,11 @@
 (defun find-next-action-rect (rect-x rect-y diamond-x diamond-y)
   "Determine the next action for the rectangle to move toward the diamond.
    Returns one of: 'up, 'down, 'left, 'right, or nil if at the target."
+  'dummy-moving-right-up
+  
+  ;; Original logic (commented out for debugging)
+  #|
   (cond
-    ;; If at the same position, no movement needed
     ((and (= rect-x diamond-x) (= rect-y diamond-y))     nil)
     
     ((< rect-y diamond-y) 'move-down)
@@ -38,4 +41,6 @@
     ((< rect-x diamond-x) 'move-right)
     ((> rect-x diamond-x) 'move-left)
     
-    (t nil)))
+    (t nil))
+    |#
+    )
