@@ -6,7 +6,8 @@
    Returns one of: 'move-up, 'move-down, 'move-left, 'move-right, or nil if at the target."
   
   ;; Debug code: always return 'up-right regardless of positions
-  'dummy-moving-right-up
+  ;; 'dummy-moving-right-up
+  'move-right
   
   ;; Original logic (commented out for debugging)
   #|
@@ -28,19 +29,18 @@
 (defun find-next-action-rect (rect-x rect-y diamond-x diamond-y)
   "Determine the next action for the rectangle to move toward the diamond.
    Returns one of: 'up, 'down, 'left, 'right, or nil if at the target."
-  'dummy-moving-right-up
+  ;; 'dummy-moving-right-up
+  ;; 'move-right
   
-  ;; Original logic (commented out for debugging)
-  #|
   (cond
     ((and (= rect-x diamond-x) (= rect-y diamond-y))     nil)
     
-    ((< rect-y diamond-y) 'move-down)
-    ((> rect-y diamond-y) 'move-up)
+    ;; ((< rect-y diamond-y) 'move-down)
+    ;; ((> rect-y diamond-y) 'move-up)
     
     ((< rect-x diamond-x) 'move-right)
-    ((> rect-x diamond-x) 'move-left)
-    
-    (t nil))
-    |#
-    )
+    ;; ((> rect-x diamond-x) 'move-left)
+    (t 'move-up)
+    ;; (t nil)
+  )
+)

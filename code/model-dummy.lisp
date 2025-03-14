@@ -182,7 +182,7 @@
         value       "rect"
         :attended   nil
     =goal>
-        intention   searching-for-red-rect
+        intention   searching-for-rect
     !output! ("---- 1.1.3 Searching for red block with specific criteria")
 )
 
@@ -190,7 +190,7 @@
 (p attend-to-red-rect
     =goal>
         state       i-dont-know-who-i-am
-        intention   searching-for-red-rect
+        intention   searching-for-rect
     =visual-location>
         screen-x =x
         screen-y =y
@@ -304,14 +304,14 @@
     +visual-location>
         value "rect"
     =goal>
-        intention   searching-for-red-rect-after-move
+        intention   searching-for-rect-after-move
     !output! ("---- 1.1.8 Re-Find red block after moving")
 )
 
-(p re-attend-to-red-rect-no-change
+(p re-attend-to-rect-no-change
     =goal>
         state       i-dont-know-who-i-am
-        intention   searching-for-red-rect-after-move
+        intention   searching-for-rect-after-move
     =visual-location>
         screen-x =new-rect-x
     =imaginal>
@@ -331,10 +331,10 @@
     !output! ("---- 1.1.9 Found red block at position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
 )
 
-(p re-attend-to-red-rect-changed
+(p re-attend-to-rect-changed
     =goal>
         state       i-dont-know-who-i-am
-        intention   searching-for-red-rect-after-move
+        intention   searching-for-rect-after-move
     =visual-location>
         screen-x =new-rect-x
     =imaginal>
@@ -363,8 +363,8 @@
         state       i-dont-know-who-i-am
         intention   searching-for-yellow-disc-after-move
     =imaginal>
-        is-disc =0
-        is-rect =0
+        is-disc 0
+        is-rect 0
 ==>
     =imaginal>
     =goal>
@@ -442,18 +442,18 @@
         state free
     =imaginal>
         isa position-record
-        is-disc =1
+        is-disc 1
         disc-x =dx
         disc-y =dy
         diamond-x =diamx
         diamond-y =diamy
 ==>
-    !bind! =next-move-state (find-next-action-disc =dx =dy =diamx =diamy)
+    !bind! =query-move-state (find-next-action-disc =dx =dy =diamx =diamy)
     =imaginal>
     =goal>  
-        state       =next-move-state
+        state       =query-move-state
         intention   nil
-    !output! ("---- 2.1.3 next move state is ~S" =next-move-state)
+    !output! ("---- 2.1.3a decide next action for disc, next move state is ~S" =query-move-state)
 )
 
 (p decide-next-action-rect
@@ -464,143 +464,53 @@
         state free
     =imaginal>
         isa position-record
-        is-rect =1
+        is-rect 1
         rect-x =rx
         rect-y =ry
         diamond-x =diamx
         diamond-y =diamy
 ==>
-    ;; !bind! =next-move-state (find-next-action-rect =rx =ry =diamx =diamy)
-    !bind! =next-move-state (find-next-action-rect =rx =ry 60 26)
+    ;; !bind! =query-move-state (find-next-action-rect =rx =ry =diamx =diamy)
+    !bind! =query-move-state (find-next-action-rect =rx =ry 60 26)
     =imaginal>
     =goal>  
-        state       =next-move-state
+        state       =query-move-state
         intention   nil
-    !output! ("---- 2.1.3 next move state is ~S" =next-move-state)
+    !output! ("---- 2.1.3b decide next action for rect, next move state is ~S" =query-move-state)
 )
-
-;; (p find-next-action-if-disc
-;;     =goal>
-;;         state find-next-action
-;;     =imaginal>
-;;         is-disc =1
-;; ==>
-;;     =imaginal>
-;;     =goal>
-;;         state       dummy-moving-right-up
-;;         intention   move-right
-;;     !output! ("---- 1.2.1 Ready for random moving right jump")
-;; )
-
-;; (p find-next-action-if-block
-;;     =goal>
-;;         state find-next-action
-;;     =imaginal>
-;;         is-rect =1
-;; ==>
-;;     =imaginal>
-;;     =goal>
-;;         state       dummy-moving-right-up
-;;         intention   move-right
-;;     !output! ("---- 1.2.2 Ready for implment rect movement")
-;; )
-
-
-;; Step 3 random moving right jump
-;; todo  only for testing
-;; (p initialize-imaginal
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention test-initialize
-;;     ?imaginal>
-;;         state free
-;;         buffer empty
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     +imaginal>
-;;         isa position-record
-;;         speed 0
-;;     !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
-;; )
 
 (p perform-move-right
     =goal>
-        state       dummy-moving-right-up
+        ;; state       dummy-moving-right-up
+        state       move-right
         intention   nil
     ?imaginal>
         state free
     =imaginal>
         isa position-record
-        speed   =current-speed
-        ;; is-disc =1
-        ;; is-rect =1
     ?manual>
         state free
 ==>
-    !bind! =new-speed (+ =current-speed 1)
     =imaginal>
-        speed =new-speed
     +manual>
         cmd press-key
         key d
         duration 0.2
     =goal>
-        state       dummy-moving-right-up
-        ;; intention   move-up
+        ;; state    move-right
         intention   update-position-record
-    !output! ("---- 3.1.1 Moving right with 'd' (move ~S speed)" =new-speed)
-)
-
-(p update-position-record-rect
-    =goal>
-        ;; state       dummy-moving-right-up
-        intention   update-position-record
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-        is-rect =1
-==>
-    +visual-location>
-        value       "rect"
-    =imaginal>
-    =goal>
-        intention   searching-for-red-rect
-)
-
-(p attend-to-red-rect
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-red-rect
-    =visual-location>
-        screen-x =x
-        screen-y =y
-    ?visual>
-        state free
-    =imaginal>
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =imaginal>
-        expand 0
-        rect-x =x
-        rect-y =y
-        phase 30
-    =goal>
-        intention   ready-to-move-right
-    !output! ("---- 1.1.4 Moving attention to object at x: ~S y: ~S" =x =y)
+    !output! ("---- 3.1.1 Moving right with 'd'")
 )
 
 (p perform-move-up
     =goal>
-        state dummy-moving-right-up
-        intention move-up
+        ;; state       dummy-moving-right-up
+        state       move-up
+        intention   nil
     ?imaginal>
         state free
     =imaginal>
+        isa position-record
     ?manual>
         state free
 ==>
@@ -608,84 +518,132 @@
     +manual>
         cmd press-key
         key w
-        duration 2
+        duration 0.5
     =goal>
-        state       dummy-moving-right-up
-        intention   nil
-    !output! ("---- 3.1.2 Moving up, next intention is right")
+        ;; state    move-right
+        intention   update-position-record
+    !output! ("---- 3.2.1 Moving up with 'w'")
 )
 
-;; (p ready-for-jump-after-move-right
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     =imaginal>
-;;         isa position-record
-;;         ;; is-disc =1
-;;         ;; is-rect =1
-;;         speed   =current-speed
-;;         > current-speed 3
-;;     ?manual>
-;;         state free
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump
-;;     =imaginal>
-;;     !output! ("---- 3.1.2 Ready for jump after moving right")
-;; )
+(p update-position-rect
+    =goal>
+        ;; state       dummy-moving-right-up
+        intention   update-position-record
+    ?imaginal>
+        state free
+    =imaginal>
+        isa position-record
+        is-rect 1
+==>
+    +visual-location>
+        value       "rect"
+    =imaginal>
+    =goal>
+        intention   searching-for-rect
+    !output! ("---- 3.2.2 Updating position record to rect")
+)
 
-;; (p perform-jump
+(p update-position-disc
+    =goal>
+        ;; state       dummy-moving-right-up
+        intention   update-position-record
+    ?imaginal>
+        state free
+    =imaginal>
+        isa position-record
+        is-disc 1
+==>
+    +visual-location>
+        value       "disc"
+    =imaginal>
+    =goal>
+        intention   searching-for-disc
+    !output! ("---- 3.2.2 Updating position record to disc")
+)
+
+(p attend-to-disc
+    =goal>
+        ;; state       dummy-moving-right-up
+        ;; state       move-right
+        intention   searching-for-disc
+    =visual-location>
+        screen-x =x
+        screen-y =y
+    ?visual>
+        state free
+    =imaginal>
+        isa position-record
+        is-disc 1
+==>
+    +visual>
+        cmd move-attention
+        screen-pos =visual-location
+    =imaginal>
+        disc-x =x
+        disc-y =y
+    =goal>
+        state       deciding-next-action
+        intention   test-intention
+    !output! ("---- 3.2.3 update position record to disc at x: ~S y: ~S" =x =y)
+)
+
+(p attend-to-rect
+    =goal>
+        ;; state       dummy-moving-right-up
+        ;; state       move-right
+        intention   searching-for-rect
+    =visual-location>
+        screen-x =x
+        screen-y =y
+    ?visual>
+        state free
+    =imaginal>
+        isa position-record
+        is-rect 1
+==>
+    +visual>
+        cmd move-attention
+        screen-pos =visual-location
+    =imaginal>
+        rect-x =x
+        rect-y =y
+    =goal>
+        state       deciding-next-action
+        intention   test-intention
+    !output! ("---- 3.2.4 update position record to rect at x: ~S y: ~S" =x =y)
+)
+
+;; (p perform-move-up
 ;;     =goal>
 ;;         state dummy-moving-right-up
-;;         intention jump
+;;         intention move-up
+;;     ?imaginal>
+;;         state free
 ;;     =imaginal>
-;;         isa position-record
-;;         ;; is-disc =1
-;;         ;; is-rect =1
 ;;     ?manual>
 ;;         state free
 ;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump-key-pressed
 ;;     =imaginal>
 ;;     +manual>
 ;;         cmd press-key
 ;;         key w
-;;         duration 0.2
-;;     !output! ("---- 3.1.3 Performing jump with 'w' after moving right")
+;;         duration 2
+;;     =goal>
+;;         state       dummy-moving-right-up
+;;         intention   nil
+;;     !output! ("---- 3.1.2 Moving up, next intention is right")
 ;; )
 
-;; (p complete-action
+;; ;; Retrieve the previous position record from declarative memory
+;; (p development-mode
 ;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump-key-pressed
-;;     =imaginal>
-;;         ;; isa position-record
-;;         ;; is-disc =1
-;;         ;; is-rect =1
-;;     ?manual>
-;;         state free
+;;         state debug-production
 ;; ==>
 ;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     =imaginal>
-;;         speed 0
-;;     !output! ("---- 3.1.4 Action completed, ready to jump or move right")
+;;         state debug-production
+;;     !output! ("---- debug-production ----")
+;;     ;; !eval! (dm)  ;; Print all chunks in declarative memory to help debug
 ;; )
-
-;; Retrieve the previous position record from declarative memory
-(p development-mode
-    =goal>
-        state debug-production
-==>
-    =goal>
-        state debug-production
-    !output! ("---- debug-production ----")
-    ;; !eval! (dm)  ;; Print all chunks in declarative memory to help debug
-)
 
 
   (p want-to-move
@@ -771,3 +729,112 @@
 ;;      )
   
   )
+
+;; (p find-next-action-if-disc
+;;     =goal>
+;;         state find-next-action
+;;     =imaginal>
+;;         is-disc 1
+;; ==>
+;;     =imaginal>
+;;     =goal>
+;;         state       dummy-moving-right-up
+;;         intention   move-right
+;;     !output! ("---- 1.2.1 Ready for random moving right jump")
+;; )
+
+;; (p find-next-action-if-block
+;;     =goal>
+;;         state find-next-action
+;;     =imaginal>
+;;         is-rect 1
+;; ==>
+;;     =imaginal>
+;;     =goal>
+;;         state       dummy-moving-right-up
+;;         intention   move-right
+;;     !output! ("---- 1.2.2 Ready for implment rect movement")
+;; )
+
+
+;; Step 3 random moving right jump
+;; todo  only for testing
+;; (p initialize-imaginal
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention test-initialize
+;;     ?imaginal>
+;;         state free
+;;         buffer empty
+;; ==>
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention move-right
+;;     +imaginal>
+;;         isa position-record
+;;         speed 0
+;;     !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
+;; )
+
+
+
+;; (p ready-for-jump-after-move-right
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention move-right
+;;     =imaginal>
+;;         isa position-record
+;;         ;; is-disc 1
+;;         ;; is-rect 1
+;;         speed   =current-speed
+;;         > current-speed 3
+;;     ?manual>
+;;         state free
+;; ==>
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention jump
+;;     =imaginal>
+;;     !output! ("---- 3.1.2 Ready for jump after moving right")
+;; )
+
+;; (p perform-jump
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention jump
+;;     =imaginal>
+;;         isa position-record
+;;         ;; is-disc 1
+;;         ;; is-rect 1
+;;     ?manual>
+;;         state free
+;; ==>
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention jump-key-pressed
+;;     =imaginal>
+;;     +manual>
+;;         cmd press-key
+;;         key w
+;;         duration 0.2
+;;     !output! ("---- 3.1.3 Performing jump with 'w' after moving right")
+;; )
+
+;; (p complete-action
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention jump-key-pressed
+;;     =imaginal>
+;;         ;; isa position-record
+;;         ;; is-disc 1
+;;         ;; is-rect 1
+;;     ?manual>
+;;         state free
+;; ==>
+;;     =goal>
+;;         state dummy-moving-right-up
+;;         intention move-right
+;;     =imaginal>
+;;         speed 0
+;;     !output! ("---- 3.1.4 Action completed, ready to jump or move right")
+;; )

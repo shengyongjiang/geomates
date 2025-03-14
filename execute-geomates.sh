@@ -83,7 +83,8 @@ send_command 1 "sleep 2 && open -a \"Google Chrome\" \"http://localhost:8081/vie
 send_command 2 "sleep 2 && telnet localhost 45678"
 
 # Original command for reference
-send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
+# send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
+send_command 3 "cd $WORKING_DIR && sbcl --load \"entry.lisp\""
 
 # Select pane 3 (second row) to make it active
 tmux select-pane -t "$SESSION:$WINDOW_INDEX.3"
