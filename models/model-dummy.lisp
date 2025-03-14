@@ -76,7 +76,7 @@
     ;; block expand: 0 not expand, 1 expand  once 2 expand twice etc
     (chunk-type position-record 
                                 is-disc  speed disc-x disc-y 
-                                is-block expand rect-x rect-y who-i-am phase
+                                is-rect expand rect-x rect-y who-i-am phase
                                 )
 
   (add-dm
@@ -93,7 +93,7 @@
    (down-control isa control intention move-down button s)
    (left-control isa control intention move-left button a)
    (right-control isa control intention move-right button d)
-   (position-record-chunk isa position-record is-disc 0 speed 0 disc-x nil disc-y nil is-block 0 rect-x nil rect-y nil phase 0)
+   (position-record-chunk isa position-record is-disc 0 speed 0 disc-x nil disc-y nil is-rect 0 rect-x nil rect-y nil phase 0)
    (first-goal isa goal state i-dont-know-who-i-am)
    (second-goal isa goal state searching-for-diamond)
    (third-goal isa goal state random-moving-right-jump intention test-initialize)
@@ -261,7 +261,32 @@
 ;; New productions to find and compare disc positions after moving
 
 ;; Find the new location of the disc after moving
-(p re-attend-to-yellow-disc
+;; (p re-attend-to-yellow-disc
+;;     =goal>
+;;         state searching-for-yellow-disc-after-move
+;;     =visual-location>
+;;         screen-x =new-disc-x
+;;     =imaginal>
+;;         isa position-record
+;;         disc-x =old-disc-x
+;;     ?visual>
+;;         state free
+;; ==>
+;;     +visual>
+;;         cmd move-attention  
+;;         screen-pos =visual-location
+;;     =goal>
+;;         state ready-re-find-red-block
+;;     !bind! =is-disc (if (eql =new-disc-x =old-disc-x) 0 1)
+;;     =imaginal>
+;;         isa position-record
+;;         disc-x =new-disc-x
+;;         is-disc =is-disc
+;;         phase 40
+;;     !output! ("---- 1.1.7 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
+;; )
+
+(p re-attend-to-yellow-disc-no-change
     =goal>
         state searching-for-yellow-disc-after-move
     =visual-location>
@@ -269,6 +294,7 @@
     =imaginal>
         isa position-record
         disc-x =old-disc-x
+        disc-x =new-disc-x
     ?visual>
         state free
 ==>
@@ -277,13 +303,32 @@
         screen-pos =visual-location
     =goal>
         state ready-re-find-red-block
-    !bind! =is-disc (if (eql =new-disc-x =old-disc-x) 0 1)
+    =imaginal>
+        disc-x =new-disc-x
+    !output! ("---- 1.1.7 Found disc at position: x=~S (disc position unchanged from ~S)" =new-disc-x =old-disc-x)
+)
+
+(p re-attend-to-yellow-disc-changed
+    =goal>
+        state searching-for-yellow-disc-after-move
+    =visual-location>
+        screen-x =new-disc-x
     =imaginal>
         isa position-record
+        disc-x =old-disc-x
+        - disc-x =new-disc-x
+    ?visual>
+        state free
+==>
+    +visual>
+        cmd move-attention  
+        screen-pos =visual-location
+    =goal>
+        state find-next-action
+    =imaginal>
         disc-x =new-disc-x
-        is-disc =is-disc
-        phase 40
-    !output! ("---- 1.1.7 Found disc at new position: x=~S(am I disc?: ~S)" =new-disc-x =is-disc)
+        is-disc 1
+    !output! ("---- 1.1.7 Found disc at new position: x=~S (disc position changed from ~S)" =new-disc-x =old-disc-x)
 )
 
 (p ready-re-find-red-block
@@ -294,13 +339,12 @@
 ==>
     +visual-location>
         value "rect"
-        ;; :attended nil         ;; Look for unattended rect
     =goal>
         state searching-for-red-block-after-move
     !output! ("---- 1.1.8 Re-Find red block after moving")
 )
 
-(p re-attend-to-red-block
+(p re-attend-to-red-block-no-change
     =goal>
         state searching-for-red-block-after-move
     =visual-location>
@@ -308,6 +352,7 @@
     =imaginal>
         isa position-record
         rect-x =old-rect-x
+        rect-x =new-rect-x
     ?visual>
         state free
 ==>
@@ -315,15 +360,33 @@
         cmd move-attention  
         screen-pos =visual-location
     =goal>
-        ;; state searching-for-diamond
-        state find-next-action
-    !bind! =is-block (if (eql =new-rect-x =old-rect-x) 0 1)
+        state ready-re-find-yellow-disc
+    =imaginal>
+        rect-x =new-rect-x
+    !output! ("---- 1.1.9 Found red block at position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
+)
+
+(p re-attend-to-red-block-changed
+    =goal>
+        state searching-for-red-block-after-move
+    =visual-location>
+        screen-x =new-rect-x
     =imaginal>
         isa position-record
+        rect-x =old-rect-x
+        - rect-x =new-rect-x
+    ?visual>
+        state free
+==>
+    +visual>
+        cmd move-attention  
+        screen-pos =visual-location
+    =goal>
+        state find-next-action
+    =imaginal>
         rect-x =new-rect-x
-        is-block =is-block
-        phase 50
-    !output! ("---- 1.1.9 Found red block at new position: x=~S(am I block?: ~S)" =new-rect-x =is-block)
+        is-rect 1
+    !output! ("---- 1.1.9 Found red block at new position: x=~S (block position changed from ~S)" =new-rect-x =old-rect-x)
 )
 
 (p find-next-action-if-neither
@@ -331,7 +394,7 @@
         state find-next-action
     =imaginal>
         is-disc =0
-        is-block =0
+        is-rect =0
 ==>
     =imaginal>
     =goal>
@@ -356,8 +419,8 @@
     =goal>
         state find-next-action
     =imaginal>
-        is-block =1
-==[]>
+        is-rect =1
+==>
     =imaginal>
     =goal>
         state       random-moving-right-jump
@@ -481,7 +544,7 @@
         ;; is-rect =1
     ?manual>
         state free
-==0>
+==>
     =goal>
         state random-moving-right-jump
         intention move-right
