@@ -143,10 +143,12 @@
             state free
         ?imaginal>
             state free
+        =imaginal>
+            isa position-record
     ==>
         +visual-location>
             value       "disc"
-        +imaginal>
+        =imaginal>
             isa position-record
             phase 0
         =goal>
@@ -184,8 +186,6 @@
             intention       update-ui
             sub-intention   ready-to-find-red-rect
         ?visual>
-            state free
-        ?imaginal>
             state free
     ==>
         +visual-location>
@@ -248,7 +248,12 @@
         =goal>
             state i-dont-know-who-i-am
             intention nil
+        ?imaginal>
+            state free
     ==>
+        +imaginal>
+            isa position-record
+            phase 0
         =goal>
             state           i-dont-know-who-i-am
             intention       update-ui
@@ -544,6 +549,7 @@
         =goal>
             ;; state    move-right
             intention   =hook-intention
+            sub-intention nil
         !output! ("---- 3.1.1 Moving right with 'd'")
     )
 
