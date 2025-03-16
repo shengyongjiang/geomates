@@ -120,748 +120,479 @@
    )
 
    (goal-focus first-goal)
-;;   (goal-focus second-goal)
+  ;;   (goal-focus second-goal)
   ;;(goal-focus third-goal)
 
 
-  ;; 1 agent-location-start
-  ;; 2 searching-for-yellow-disc 
-  ;; 3 ready-to-find-red-rect
-  ;; 4 searching-for-rect 
-  ;; 5 ready-to-get-rect-size
-  ;; 6 agent-location-end
-  
-;; Step 1: Record the initial position of the yellow disc
-(p find-yellow-disc
-    =goal>
-        state i-dont-know-who-i-am
-        intention nil
-    ?visual>
-        state free
-    ?imaginal>
-        state free
-==>
-    +visual-location>
-        value       "disc"
-        :attended   nil
-    +imaginal>
-        isa position-record
-        phase 0
-    =goal>
-        intention searching-for-yellow-disc
-    !output! ("---- 1.1.1 Searching for yellow disc with specific criteria")
-)
-
-;; Only proceed to attend when we have a visual location
-(p attend-to-yellow-disc
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-yellow-disc
-    =visual-location>
-        screen-x =x
-        screen-y =y
-    ?visual>
-        state free
-    =imaginal>
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =imaginal>
-        speed 0
-        disc-x =x
-        disc-y =y
-        phase 10
-    =goal>
-        intention   ready-to-find-red-rect
-    !output! ("---- 1.1.2 Moving attention to object at x: ~S y: ~S" =x =y)
-)
-  
-;; Step 1: Record the initial position of the yellow disc
-(p find-red-rect
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   ready-to-find-red-rect
-    ?visual>
-        state free
-    ?imaginal>
-        state free
-==>
-    +visual-location>
-        value       "rect"
-        :attended   nil
-    =goal>
-        intention   searching-for-rect
-    !output! ("---- 1.1.3 Searching for red block with specific criteria")
-)
-
-;; Only proceed to attend when we have a visual location
-(p attend-to-red-rect
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-rect
-    =visual-location>
-        screen-x =x
-        screen-y =y
-    ?visual>
-        state free
-    =imaginal>
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =imaginal>
-        expand 0
-        rect-x =x
-        rect-y =y
-        phase 30
-    =goal>
-        intention   ready-to-get-rect-size
-    !output! ("---- 1.1.4 Moving attention to object at x: ~S y: ~S" =x =y)
-)
-
-(p get-rect-size
-    =goal>
-        intention   ready-to-get-rect-size
-    =visual>
-        width =w
-        height =h
-    =imaginal>
-    ?imaginal>
-        state free
-==>
-    =imaginal>
-        rect-width =w
-        rect-height =h
-    =goal>
-        intention   ready-to-move-right
-    !output! ("---- 1.1.4b Got rectangle size: width=~S height=~S" =w =h)
-)
-
-(p move-right-to-location
-    =goal>
-        intention   ready-to-move-right
-    =imaginal>
-    ?manual>
-        state free
-==>
-    =goal>
-        intention   ready-re-find-yellow-disc
-    +manual>
-        cmd press-key
-        key d
-        duration 0.5
-    =imaginal>
-    !output! ("---- 1.1.5 Moving right")
-)
-
-(p ready-re-find-yellow-disc
-    =goal>
-        intention   ready-re-find-yellow-disc
-    ?visual>
-        state free
-==>
-    +visual-location>
-        value "disc"
-        ;; :attended nil         ;; Look for unattended disc
-    =goal>
-        intention   searching-for-yellow-disc-after-move
-    !output! ("---- 1.1.6 Re-Find yellow disc after moving")
-)
-
-(p re-attend-to-yellow-disc-no-change
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-yellow-disc-after-move
-    =visual-location>
-        screen-x =new-disc-x
-    =imaginal>
-        isa position-record
-        disc-x =old-disc-x
-        disc-x =new-disc-x
-    ?visual>
-        state free
-==>
-    +visual>
-        cmd move-attention  
-        screen-pos =visual-location
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   ready-re-find-red-rect
-    =imaginal>
-        disc-x =new-disc-x
-    !output! ("---- 1.1.7 Found disc at position: x=~S (disc position unchanged from ~S)" =new-disc-x =old-disc-x)
-)
-
-(p re-attend-to-yellow-disc-changed
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-yellow-disc-after-move
-    =visual-location>
-        screen-x =new-disc-x
-    =imaginal>
-        isa position-record
-        disc-x =old-disc-x
-        - disc-x =new-disc-x
-    ?visual>
-        state free
-==>
-    +visual>
-        cmd move-attention  
-        screen-pos =visual-location
-    =goal>
-        state       collecting-diamond
-        intention   searching-diamond
-    =imaginal>
-        disc-x =new-disc-x
-        is-disc 1
-        is-rect 0
-    !output! ("---- 1.1.7 Found disc at new position: x=~S (disc position changed from ~S)" =new-disc-x =old-disc-x)
-)
-
-(p ready-re-find-red-rect
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   ready-re-find-red-rect
-    ?visual>
-        state free
-==>
-    +visual-location>
-        value "rect"
-    =goal>
-        intention   searching-for-rect-after-move
-    !output! ("---- 1.1.8 Re-Find red block after moving")
-)
-
-(p re-attend-to-rect-no-change
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-rect-after-move
-    =visual-location>
-        screen-x =new-rect-x
-    =imaginal>
-        isa position-record
-        rect-x =old-rect-x
-        rect-x =new-rect-x
-    ?visual>
-        state free
-==>
-    +visual>
-        cmd move-attention  
-        screen-pos =visual-location
-    =goal>
-        intention   ready-re-find-yellow-disc
-    =imaginal>
-        rect-x =new-rect-x
-    !output! ("---- 1.1.9 Found red block at position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
-)
-
-(p re-attend-to-rect-changed
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-rect-after-move
-    =visual-location>
-        screen-x =new-rect-x
-    =imaginal>
-        isa position-record
-        rect-x =old-rect-x
-        - rect-x =new-rect-x
-    ?visual>
-        state free
-==>
-    +visual>
-        cmd move-attention  
-        screen-pos =visual-location
-    =goal>
-        state       collecting-diamond
-        intention   searching-diamond
-    =imaginal>
-        rect-x =new-rect-x
-        is-rect 1
-        is-disc 0
-    !output! ("---- 1.1.9 Found red block at new position: x=~S (block position changed from ~S)" =new-rect-x =old-rect-x)
-)
-
-;; todo: clean up maybe this is not necessary
-(p find-next-action-if-neither
-    =goal>
-        state       i-dont-know-who-i-am
-        intention   searching-for-yellow-disc-after-move
-    =imaginal>
-        is-disc 0
-        is-rect 0
-==>
-    =imaginal>
-    =goal>
-        state ready-to-move-right
-    !output! ("---- 1.1.10 Don't know I am yellow disc or red block, move right again to find")
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; find nearest diamond
-
-;; adapter for stepper
-;; (p find-next-action-shall-search-for-diamond
-;;     =goal>
-;;         state       collecting-diamond
-;;         intention   searching-diamond
-;; ==>
-;;     =goal>
-;;         state       collecting-diamond
-;;         intention   searching-diamond
-;;     !output! ("---- 2.0.0 Searching for diamond")
-;; )
-
-(p find-diamond-locations
-    =goal>
-        state       collecting-diamond
-        intention   searching-diamond
-    ?visual>
-        state free
-==>
-    +visual-location>
-        value "diamond"
-        :attended   nil
-    =goal>
-        intention evaluating-diamond-locations
-    !output! ("---- 2.1.1 Requesting locations of any diamonds")
-)
-
-(p attend-closest-diamond
-    =goal>
-        state       collecting-diamond
-        intention   evaluating-diamond-locations
-    =visual-location>
-        screen-x =any-diamond-x
-        screen-y =any-diamond-y
-    ?imaginal> 
-        state free
-    =imaginal>
-        isa position-record
-    ?visual>
-        state free
-    ;; - visual-location>  ;; Ensure this is the first match (simplistic closest check)
-    ;; todo : maybe we could start any diamond location, search for the nearest one anyway
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =goal>
-        state       deciding-next-action
-        ;; intention   ready-to-move-right
-        intention   test-intention
-    =imaginal>
-        isa position-record
-        diamond-x =any-diamond-x
-        diamond-y =any-diamond-y
-    !output! ("---- 2.1.2 Attending to diamond at x=~S, y=~S" =any-diamond-x =any-diamond-y)
-)
-
-;; break point production
-(p decide-next-action-disc
-    =goal>
-        state       deciding-next-action
-        intention   test-intention
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-        is-disc 1
-        disc-x =dx
-        disc-y =dy
-        diamond-x =diamx
-        diamond-y =diamy
-==>
-    !bind! =query-move-state (find-next-action-disc =dx =dy =diamx =diamy)
-    =imaginal>
-    =goal>  
-        state       =query-move-state
-        intention   nil
-    !output! ("---- 2.1.3a decide next action for disc, next move state is ~S" =query-move-state)
-)
-
-(p decide-next-action-rect
-    =goal>
-        state       deciding-next-action
-        intention   test-intention
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-        is-rect 1
-        rect-x =rx
-        rect-y =ry
-        rect-width =rw
-        rect-height =rh
-        diamond-x =diamx
-        diamond-y =diamy
-==>
-    ;; !bind! =query-move-state (find-next-action-rect =rx =ry =ry =rw  =diamx =diamy)
-    !bind! =query-move-state (find-next-action-rect =rx =ry =rw =rh 60 26)
-    =imaginal>
-    =goal>  
-        state       =query-move-state
-        intention   nil
-    !output! ("---- 2.1.3b decide next action for rect, next move state is ~S" =query-move-state)
-)
-
-(p perform-move-right
-    =goal>
-        ;; state       dummy-moving-right-up
-        state       move-right
-        intention   nil
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-    ?manual>
-        state free
-==>
-    =imaginal>
-    +manual>
-        cmd press-key
-        key d
-        duration 0.2
-    =goal>
-        ;; state    move-right
-        intention   update-position-record
-    !output! ("---- 3.1.1 Moving right with 'd'")
-)
-
-(p perform-move-up
-    =goal>
-        ;; state       dummy-moving-right-up
-        state       move-up
-        intention   nil
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-    ?manual>
-        state free
-==>
-    =imaginal>
-    +manual>
-        cmd press-key
-        key w
-        duration 0.5
-    =goal>
-        ;; state    move-right
-        intention   update-position-record
-    !output! ("---- 3.2.1 Moving up with 'w'")
-)
-
-(p update-position-rect
-    =goal>
-        ;; state       dummy-moving-right-up
-        intention   update-position-record
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-        is-rect 1
-==>
-    +visual-location>
-        value       "rect"
-    =imaginal>
-    =goal>
-        intention   searching-for-rect
-    !output! ("---- 3.2.2 Updating position record to rect")
-)
-
-(p update-position-disc
-    =goal>
-        ;; state       dummy-moving-right-up
-        intention   update-position-record
-    ?imaginal>
-        state free
-    =imaginal>
-        isa position-record
-        is-disc 1
-==>
-    +visual-location>
-        value       "disc"
-    =imaginal>
-    =goal>
-        intention   searching-for-disc
-    !output! ("---- 3.2.2 Updating position record to disc")
-)
-
-(p attend-to-disc
-    =goal>
-        ;; state       dummy-moving-right-up
-        ;; state       move-right
-        intention   searching-for-disc
-    =visual-location>
-        screen-x =x
-        screen-y =y
-    ?visual>
-        state free
-    =imaginal>
-        isa position-record
-        is-disc 1
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =imaginal>
-        disc-x =x
-        disc-y =y
-    =goal>
-        state       deciding-next-action
-        intention   test-intention
-    !output! ("---- 3.2.3 update position record to disc at x: ~S y: ~S" =x =y)
-)
-
-(p attend-to-rect
-    =goal>
-        ;; state       dummy-moving-right-up
-        ;; state       move-right
-        intention   searching-for-rect
-    =visual-location>
-        screen-x =x
-        screen-y =y
-    ?visual>
-        state free
-    =imaginal>
-        isa position-record
-        is-rect 1
-==>
-    +visual>
-        cmd move-attention
-        screen-pos =visual-location
-    =imaginal>
-        rect-x =x
-        rect-y =y
-    =goal>
-        state       deciding-next-action
-        intention   test-intention
-    !output! ("---- 3.2.4 update position record to rect at x: ~S y: ~S" =x =y)
-)
-
-;; (p perform-move-up
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-up
-;;     ?imaginal>
-;;         state free
-;;     =imaginal>
-;;     ?manual>
-;;         state free
-;; ==>
-;;     =imaginal>
-;;     +manual>
-;;         cmd press-key
-;;         key w
-;;         duration 2
-;;     =goal>
-;;         state       dummy-moving-right-up
-;;         intention   nil
-;;     !output! ("---- 3.1.2 Moving up, next intention is right")
-;; )
-
-;; ;; Retrieve the previous position record from declarative memory
-;; (p development-mode
-;;     =goal>
-;;         state debug-production
-;; ==>
-;;     =goal>
-;;         state debug-production
-;;     !output! ("---- debug-production ----")
-;;     ;; !eval! (dm)  ;; Print all chunks in declarative memory to help debug
-;; )
 
 
-  (p want-to-move
-     =goal>
-     state i-want-to-do-something
-     intention =intention
-     ?retrieval>
-     state free
-==>
-     =goal>
-     state something-should-change
-     +retrieval>
-        intention =intention
-     )
-  
-  (p move
-     =goal>
-     state something-should-change
-     =retrieval>
-     button =button
-    ?manual>
-     state free
- ==>
-     =goal>
-     state i-dont-know-where-to-go
-     +manual>
-     cmd press-key
-     key =button
-     )
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; ui-procedurals
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; 1 nil
+    ;; 2 searching-for-yellow-disc 
+    ;; 3 ready-to-find-red-rect
+    ;; 4 searching-for-rect 
+    ;; 5 ready-to-get-rect-size
+    ;; 6 update-ui-end
+    (p find-yellow-disc
+        =goal>
+            intention       update-ui
+            sub-intention   nil
+        ?visual>
+            state free
+        ?imaginal>
+            state free
+    ==>
+        +visual-location>
+            value       "disc"
+        +imaginal>
+            isa position-record
+            phase 0
+        =goal>
+            sub-intention searching-for-yellow-disc
+        !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
+    )
 
-  (p retrieval-failure
-     =goal>
-     state something-should-change
-     ?retrieval>
-     buffer failure
-==>
-     =goal>
-        state i-dont-know-where-to-go
-     )
-  
-(p maybe-left
-    =goal>
-        state i-dont-know-where-to-go
-    ?manual>
-        state free
-==>
-    =goal>
+    (p attend-to-yellow-disc
+        =goal>
+            intention       update-ui
+            sub-intention   searching-for-yellow-disc
+        =visual-location>
+            screen-x =x
+            screen-y =y
+        ?visual>
+            state free
+        =imaginal>
+    ==>
+        +visual>
+            cmd move-attention
+            screen-pos =visual-location
+        =imaginal>
+            ;; speed 0
+            disc-x =x
+            disc-y =y
+            phase 10
+        =goal>
+            sub-intention   ready-to-find-red-rect
+        !output! ("---- x.1.0 Moving attention to object at x: ~S y: ~S" =x =y)
+    )
+        
+    ;; Step 1: Record the initial position of the yellow disc
+    (p find-red-rect
+        =goal>
+            intention       update-ui
+            sub-intention   ready-to-find-red-rect
+        ?visual>
+            state free
+        ?imaginal>
+            state free
+    ==>
+        +visual-location>
+            value       "rect"
+            ;; :attended   nil
+        =goal>
+            sub-intention   searching-for-rect
+            phase 20
+        !output! ("---- x.2.0 Searching for red block with specific criteria")
+    )
+
+    (p attend-to-red-rect
+        =goal>
+            intention       update-ui
+            sub-intention   searching-for-rect
+        =visual-location>
+            screen-x =x
+            screen-y =y
+        ?visual>
+            state free
+        =imaginal>
+    ==>
+        +visual>
+            cmd move-attention
+            screen-pos =visual-location
+        =imaginal>
+            ;; expand 0
+            rect-x =x
+            rect-y =y
+            phase 30
+        =goal>
+            sub-intention   ready-to-get-rect-size
+        !output! ("---- x.3.0 Moving attention to object at x: ~S y: ~S" =x =y)
+    )
+
+    (p get-rect-size
+        =goal>
+            intention       update-ui
+            sub-intention   ready-to-get-rect-size
+        =visual>
+            width =w
+            height =h
+        =imaginal>
+        ?imaginal>
+            state free
+    ==>
+        =imaginal>
+            rect-width =w
+            rect-height =h
+            phase 40
+        =goal>
+            sub-intention   update-ui-end
+        !output! ("---- x.4.0 Got rectangle size: width=~S height=~S" =w =h)
+    )
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+    (p i-dont-know-who-i-am
+        =goal>
+            state i-dont-know-who-i-am
+            intention nil
+    ==>
+        =goal>
+            state           i-dont-know-who-i-am
+            intention       update-ui
+            sub-intention   nil
+        !output! ("---- 1.1.0 Update UI start")    
+    )
+
+    (p update-ui
+        =goal>
+            state           i-dont-know-who-i-am
+            intention       update-ui
+            sub-intention   update-ui-end
+    ==>
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   ready-to-move-right
+            sub-intention nil
+        !output! ("---- 1.1.1 Update UI end")
+    )
+
+    (p move-right-to-location
+        =goal>
+            intention   ready-to-move-right
+        =imaginal>
+        ?manual>
+            state free
+    ==>
+        =goal>
+            intention   ready-re-find-yellow-disc
+        +manual>
+            cmd press-key
+            key d
+            duration 0.5
+        =imaginal>
+        !output! ("---- 1.1.5 Moving right")
+    )
+
+    (p ready-re-find-yellow-disc
+        =goal>
+            intention   ready-re-find-yellow-disc
+        ?visual>
+            state free
+    ==>
+        +visual-location>
+            value "disc"
+            ;; :attended nil         ;; Look for unattended disc
+        =goal>
+            intention   searching-for-yellow-disc-after-move
+        !output! ("---- 1.1.6 Re-Find yellow disc after moving")
+    )
+
+    (p re-attend-to-yellow-disc-no-change
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   searching-for-yellow-disc-after-move
+        =visual-location>
+            screen-x =new-disc-x
+        =imaginal>
+            isa position-record
+            disc-x =old-disc-x
+            disc-x =new-disc-x
+        ?visual>
+            state free
+    ==>
+        +visual>
+            cmd move-attention  
+            screen-pos =visual-location
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   ready-re-find-red-rect
+        =imaginal>
+            disc-x =new-disc-x
+        !output! ("---- 1.1.7 Found disc at position: x=~S (disc position unchanged from ~S)" =new-disc-x =old-disc-x)
+    )
+
+    (p re-attend-to-yellow-disc-changed
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   searching-for-yellow-disc-after-move
+        =visual-location>
+            screen-x =new-disc-x
+        =imaginal>
+            isa position-record
+            disc-x =old-disc-x
+            - disc-x =new-disc-x
+        ?visual>
+            state free
+    ==>
+        +visual>
+            cmd move-attention  
+            screen-pos =visual-location
+        =goal>
+            state       collecting-diamond
+            intention   searching-diamond
+        =imaginal>
+            disc-x =new-disc-x
+            is-disc 1
+            is-rect 0
+        !output! ("---- 1.1.7 Found disc at new position: x=~S (disc position changed from ~S)" =new-disc-x =old-disc-x)
+    )
+
+    (p ready-re-find-red-rect
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   ready-re-find-red-rect
+        ?visual>
+            state free
+    ==>
+        +visual-location>
+            value "rect"
+        =goal>
+            intention   searching-for-rect-after-move
+        !output! ("---- 1.1.8 Re-Find red block after moving")
+    )
+
+    (p re-attend-to-rect-no-change
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   searching-for-rect-after-move
+        =visual-location>
+            screen-x =new-rect-x
+        =imaginal>
+            isa position-record
+            rect-x =old-rect-x
+            rect-x =new-rect-x
+        ?visual>
+            state free
+    ==>
+        +visual>
+            cmd move-attention  
+            screen-pos =visual-location
+        =goal>
+            intention   ready-re-find-yellow-disc
+        =imaginal>
+            rect-x =new-rect-x
+        !output! ("---- 1.1.9 Found red block at position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
+    )
+
+    (p re-attend-to-rect-changed
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   searching-for-rect-after-move
+        =visual-location>
+            screen-x =new-rect-x
+        =imaginal>
+            isa position-record
+            rect-x =old-rect-x
+            - rect-x =new-rect-x
+        ?visual>
+            state free
+    ==>
+        +visual>
+            cmd move-attention  
+            screen-pos =visual-location
+        =goal>
+            state       collecting-diamond
+            intention   searching-diamond
+        =imaginal>
+            rect-x =new-rect-x
+            is-rect 1
+            is-disc 0
+        !output! ("---- 1.1.9 Found red block at new position: x=~S (block position changed from ~S)" =new-rect-x =old-rect-x)
+    )
+
+    (p test-code-collecting-diamond
+        =goal>
+            state       collecting-diamond
+            intention   searching-diamond
+    ==>
+        =goal>
+            state           move-right
+            intention       update-ui
+            sub-intention   nil
+        !output! ("---- x.0.0 test code loop right and update UI")
+    )
+
+    ;; maybe we should refresh UI
+        ;; =goal>
+        ;;     state       collecting-diamond
+        ;;     intention   searching-diamond
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; find nearest diamond
+
+    
+    (p find-diamond-locations
+        =goal>
+            state       collecting-diamond
+            intention   searching-diamond
+        ?visual>
+            state free
+    ==>
+        +visual-location>
+            value "diamond"
+            :attended   nil
+        =goal>
+            intention evaluating-diamond-locations
+        !output! ("---- 2.1.1 Requesting locations of any diamonds")
+    )
+
+    (p attend-closest-diamond
+        =goal>
+            state       collecting-diamond
+            intention   evaluating-diamond-locations
+        =visual-location>
+            screen-x =any-diamond-x
+            screen-y =any-diamond-y
+        ?imaginal> 
+            state free
+        =imaginal>
+            isa position-record
+        ?visual>
+            state free
+        ;; - visual-location>  ;; Ensure this is the first match (simplistic closest check)
+        ;; todo : maybe we could start any diamond location, search for the nearest one anyway
+    ==>
+        +visual>
+            cmd move-attention
+            screen-pos =visual-location
+        =goal>
+            state       deciding-next-action
+            ;; intention   ready-to-move-right
+            intention   test-intention
+        =imaginal>
+            isa position-record
+            diamond-x =any-diamond-x
+            diamond-y =any-diamond-y
+        !output! ("---- 2.1.2 Attending to diamond at x=~S, y=~S" =any-diamond-x =any-diamond-y)
+    )
+
+    ;; break point production
+    (p decide-next-action-disc
+        =goal>
+            state       deciding-next-action
+            intention   test-intention
+        ?imaginal>
+            state free
+        =imaginal>
+            isa position-record
+            is-disc 1
+            disc-x =dx
+            disc-y =dy
+            diamond-x =diamx
+            diamond-y =diamy
+    ==>
+        !bind! =query-move-state (find-next-action-disc =dx =dy =diamx =diamy)
+        =imaginal>
+        =goal>  
+            state       =query-move-state
+            intention   nil
+        !output! ("---- 2.1.3a decide next action for disc, next move state is ~S" =query-move-state)
+    )
+
+    (p decide-next-action-rect
+        =goal>
+            state       deciding-next-action
+            intention   test-intention
+        ?imaginal>
+            state free
+        =imaginal>
+            isa position-record
+            is-rect 1
+            rect-x =rx
+            rect-y =ry
+            rect-width =rw
+            rect-height =rh
+            diamond-x =diamx
+            diamond-y =diamy
+    ==>
+        ;; !bind! =query-move-state (find-next-action-rect =rx =ry =ry =rw  =diamx =diamy)
+        !bind! =query-move-state (find-next-action-rect =rx =ry =rw =rh 60 26)
+        =imaginal>
+        =goal>  
+            state       =query-move-state
+            intention   nil
+        !output! ("---- 2.1.3b decide next action for rect, next move state is ~S" =query-move-state)
+    )
+
+    (p perform-move-right
+        =goal>
+            ;; state       dummy-moving-right-up
+            state       move-right
+            ;; intention   nil
+            intention   =hook-intention
+        ?manual>
+            state free
+    ==>
+        +manual>
+            cmd press-key
+            key d
+            duration 0.2
+        =goal>
+            ;; state    move-right
+            intention   =hook-intention
+        !output! ("---- 3.1.1 Moving right with 'd'")
+    )
+
+    (p want-to-move
+        =goal>
         state i-want-to-do-something
-        intention move-left
+        intention =intention
+        ?retrieval>
+        state free
+    ==>
+        =goal>
+        state something-should-change
+        +retrieval>
+            intention =intention
+    )
+  
+    (p move
+        =goal>
+        state something-should-change
+        =retrieval>
+        button =button
+        ?manual>
+        state free
+    ==>
+        =goal>
+        state i-dont-know-where-to-go
+        +manual>
+        cmd press-key
+        key =button
+    )
+
+    (p retrieval-failure
+        =goal>
+        state something-should-change
+        ?retrieval>
+        buffer failure
+    ==>
+        =goal>
+            state i-dont-know-where-to-go
+   )
+  
+    (p maybe-left
+        =goal>
+            state i-dont-know-where-to-go
+        ?manual>
+            state free
+    ==>
+        =goal>
+            state i-want-to-do-something
+            intention move-left
+    )
 )
-  
-;;   (p maybe-right
-;;     =goal>
-;;      state i-dont-know-where-to-go
-;;      ?manual>
-;;      state free
-;; ==>
-;;      =goal>
-;;      state i-want-to-do-something
-;;      intention move-right
-;; )
-  
-;;   (p maybe-down
-;;      =goal>
-;;      state i-dont-know-where-to-go
-;;      ?manual>
-;;      state free
-;; ==>
-;;      =goal>
-;;         state i-want-to-do-something
-;;      intention move-down
-;;      )
-  
-;;   (p maybe-up
-;;      =goal>
-;;      state i-dont-know-where-to-go
-;;      ?manual>
-;;      state free
-;; ==>
-;;     =goal>
-;;      state i-want-to-do-something
-;;      intention move-up
-;;      )
-  
-  )
-
-;; (p find-next-action-if-disc
-;;     =goal>
-;;         state find-next-action
-;;     =imaginal>
-;;         is-disc 1
-;; ==>
-;;     =imaginal>
-;;     =goal>
-;;         state       dummy-moving-right-up
-;;         intention   move-right
-;;     !output! ("---- 1.2.1 Ready for random moving right jump")
-;; )
-
-;; (p find-next-action-if-block
-;;     =goal>
-;;         state find-next-action
-;;     =imaginal>
-;;         is-rect 1
-;; ==>
-;;     =imaginal>
-;;     =goal>
-;;         state       dummy-moving-right-up
-;;         intention   move-right
-;;     !output! ("---- 1.2.2 Ready for implment rect movement")
-;; )
-
-
-;; Step 3 random moving right jump
-;; todo  only for testing
-;; (p initialize-imaginal
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention test-initialize
-;;     ?imaginal>
-;;         state free
-;;         buffer empty
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     +imaginal>
-;;         isa position-record
-;;         speed 0
-;;     !output! ("---- 3.0.1 Initializing imaginal buffer with starting values")
-;; )
-
-
-
-;; (p ready-for-jump-after-move-right
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     =imaginal>
-;;         isa position-record
-;;         ;; is-disc 1
-;;         ;; is-rect 1
-;;         speed   =current-speed
-;;         > current-speed 3
-;;     ?manual>
-;;         state free
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump
-;;     =imaginal>
-;;     !output! ("---- 3.1.2 Ready for jump after moving right")
-;; )
-
-;; (p perform-jump
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump
-;;     =imaginal>
-;;         isa position-record
-;;         ;; is-disc 1
-;;         ;; is-rect 1
-;;     ?manual>
-;;         state free
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump-key-pressed
-;;     =imaginal>
-;;     +manual>
-;;         cmd press-key
-;;         key w
-;;         duration 0.2
-;;     !output! ("---- 3.1.3 Performing jump with 'w' after moving right")
-;; )
-
-;; (p complete-action
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention jump-key-pressed
-;;     =imaginal>
-;;         ;; isa position-record
-;;         ;; is-disc 1
-;;         ;; is-rect 1
-;;     ?manual>
-;;         state free
-;; ==>
-;;     =goal>
-;;         state dummy-moving-right-up
-;;         intention move-right
-;;     =imaginal>
-;;         speed 0
-;;     !output! ("---- 3.1.4 Action completed, ready to jump or move right")
-;; )
