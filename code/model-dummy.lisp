@@ -153,7 +153,7 @@
             phase 0
         =goal>
             sub-intention searching-for-yellow-disc
-        !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
+        ;; !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
     )
 
     (p attend-to-yellow-disc
@@ -177,7 +177,7 @@
             phase 10
         =goal>
             sub-intention   ready-to-find-red-rect
-        !output! ("---- x.1.0 Moving attention to object at x: ~S y: ~S" =x =y)
+        ;; !output! ("---- x.1.0 Moving attention to object at x: ~S y: ~S" =x =y)
     )
         
     ;; Step 1: Record the initial position of the yellow disc
@@ -194,7 +194,7 @@
         =goal>
             sub-intention   searching-for-rect
             phase 20
-        !output! ("---- x.2.0 Searching for red block with specific criteria")
+        ;; !output! ("---- x.2.0 Searching for red block with specific criteria")
     )
 
     (p attend-to-red-rect
@@ -218,7 +218,7 @@
             phase 30
         =goal>
             sub-intention   ready-to-get-rect-size
-        !output! ("---- x.3.0 Moving attention to object at x: ~S y: ~S" =x =y)
+        ;; !output! ("---- x.3.0 Moving attention to object at x: ~S y: ~S" =x =y)
     )
 
     (p get-rect-size
@@ -238,7 +238,7 @@
             phase 40
         =goal>
             sub-intention   searching-diamond
-        !output! ("---- x.4.0 Got rectangle size: width=~S height=~S" =w =h)
+        ;; !output! ("---- x.4.0 Got rectangle size: width=~S height=~S" =w =h)
     )
 
 
@@ -255,7 +255,7 @@
             screen-x lowest
         =goal>
             sub-intention evaluating-diamond-locations
-        !output! ("---- x.5.0 Requesting location of leftmost diamond")
+        ;; !output! ("---- x.5.0 Requesting location of leftmost diamond")
     )
 
     (p attend-closest-diamond
@@ -284,7 +284,7 @@
             isa position-record
             diamond-x =any-diamond-x
             diamond-y =any-diamond-y
-        !output! ("---- x.6.0 Attending to diamond at x=~S, y=~S" =any-diamond-x =any-diamond-y)
+        ;; !output! ("---- x.6.0 Attending to diamond at x=~S, y=~S" =any-diamond-x =any-diamond-y)
     )
 
     (p back-to-parent-goal
@@ -496,9 +496,11 @@
             diamond-y =diamy
     ==>
         !bind! =query-move-intention (find-next-action-disc =diamx =diamy =dx =dy =rx =ry =rw =rh)
+        !bind! =repeatly 1
         =imaginal>
         =goal>  
             intention       =query-move-intention
+            repeatly        =repeatly
         !output! ("---- 2.1.3a decide next action for disc, next move state is ~S" =query-move-intention)
     )
 
@@ -519,92 +521,103 @@
             diamond-y =diamy
     ==>
         !bind! =query-move-intention (find-next-action-rect =rx =ry =rw =rh =diamx =diamy)
+        !bind! =repeatly 6
         =imaginal>
         =goal>  
             intention       =query-move-intention
+            repeatly        =repeatly
         !output! ("---- 2.1.3b decide next action for rect, next move state is ~S" =query-move-intention)
     )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (p perform-move-up
+    (p perform-move-up-start
         =goal>
             intention       move-up
+            > repeatly      0
+            repeatly        =repeatly
         ?manual>
             state free
     ==>
+        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key w
             duration 0.2
         =goal>
+            repeatly        =next-repeatly
+        !output! ("---- 3.1.3 Moving up with 'w'")
+    )
+
+    (p perform-move-up-end
+        =goal>
+            intention       move-up
+            repeatly        0
+    ==>
+        =goal>
             intention     update-ui
             sub-intention nil
             callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.3 Moving up with 'w'")
+        !output! ("---- 3.1.3 Moving up end, update ui")
     )
 
     (p perform-move-left-start
         =goal>
             intention     move-left
+            > repeatly    0
+            repeatly        =repeatly
         ?manual>
             state free
     ==>
+        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key a
             ;; duration 0.2
         =goal>
-            intention     move-left-again
+            repeatly        =next-repeatly
         !output! ("---- 3.1.1 Moving left with 'a'")
     )
 
     (p perform-move-left-end
         =goal>
-            intention     move-left-again
-        ?manual>
-            state free
+            intention     move-left
+            repeatly      0
     ==>
-        +manual>
-            cmd press-key
-            key a
-            ;; duration 0.2
         =goal>
             intention     update-ui
             sub-intention nil
             callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.1 Moving left with 'a'")
+        !output! ("---- 3.1.1 Moving left end, update ui")
     )
 
     (p perform-move-right-start
         =goal>
             intention     move-right
+            > repeatly    0
+            repeatly      =repeatly
         ?manual>
             state free
     ==>
+        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key d
             ;; duration 0.2
         =goal>
-            intention     move-right-again
+            repeatly        =next-repeatly
         !output! ("---- 3.1.1 Moving right with 'd'")
     )
 
     (p perform-move-right-end
         =goal>
-            intention     move-right-again
-        ?manual>
-            state free
+            intention     move-right
+            repeatly      0
     ==>
-        +manual>
-            cmd press-key
-            key d
-            ;; duration 0.2
         =goal>
             intention     update-ui
             sub-intention nil
             callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.1 Moving right with 'd'")
+        !output! ("---- 3.1.1 Moving right end, update ui")
     )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
