@@ -87,7 +87,7 @@
     ;;; todo : clean up  who-i-am phase slot
     (chunk-type position-record 
                                 is-disc speed  disc-x disc-y 
-                                is-rect expand rect-x rect-y
+                                is-rect expand rect-x rect-y rect-width rect-height
                                 diamond-x diamond-y
                                 phase
                                 )
@@ -122,11 +122,20 @@
    (goal-focus first-goal)
 ;;   (goal-focus second-goal)
   ;;(goal-focus third-goal)
+
+
+  ;; 1 agent-location-start
+  ;; 2 searching-for-yellow-disc 
+  ;; 3 ready-to-find-red-rect
+  ;; 4 searching-for-rect 
+  ;; 5 ready-to-get-rect-size
+  ;; 6 agent-location-end
   
 ;; Step 1: Record the initial position of the yellow disc
 (p find-yellow-disc
     =goal>
         state i-dont-know-who-i-am
+        intention nil
     ?visual>
         state free
     ?imaginal>
@@ -207,13 +216,30 @@
         rect-y =y
         phase 30
     =goal>
-        intention   ready-to-move-right
+        intention   ready-to-get-rect-size
     !output! ("---- 1.1.4 Moving attention to object at x: ~S y: ~S" =x =y)
+)
+
+(p get-rect-size
+    =goal>
+        intention   ready-to-get-rect-size
+    =visual>
+        width =w
+        height =h
+    =imaginal>
+    ?imaginal>
+        state free
+==>
+    =imaginal>
+        rect-width =w
+        rect-height =h
+    =goal>
+        intention   ready-to-move-right
+    !output! ("---- 1.1.4b Got rectangle size: width=~S height=~S" =w =h)
 )
 
 (p move-right-to-location
     =goal>
-        state       i-dont-know-who-i-am
         intention   ready-to-move-right
     =imaginal>
     ?manual>
@@ -231,7 +257,6 @@
 
 (p ready-re-find-yellow-disc
     =goal>
-        state       i-dont-know-who-i-am
         intention   ready-re-find-yellow-disc
     ?visual>
         state free
@@ -467,11 +492,13 @@
         is-rect 1
         rect-x =rx
         rect-y =ry
+        rect-width =rw
+        rect-height =rh
         diamond-x =diamx
         diamond-y =diamy
 ==>
-    ;; !bind! =query-move-state (find-next-action-rect =rx =ry =diamx =diamy)
-    !bind! =query-move-state (find-next-action-rect =rx =ry 60 26)
+    ;; !bind! =query-move-state (find-next-action-rect =rx =ry =ry =rw  =diamx =diamy)
+    !bind! =query-move-state (find-next-action-rect =rx =ry =rw =rh 60 26)
     =imaginal>
     =goal>  
         state       =query-move-state
