@@ -86,7 +86,10 @@ cd path/to/geomates
 # if you find error message, you migh need clean complie file of listp
 # find actr7.x -name "*.fasl" -delete
 # Start SBCL with ACT-R and the GeoMates experiment
-sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "geomates/model-dummy.lisp")'
+
+sbcl --load "entry.lisp"
+# the above lisp contain the below diffrent lisp files
+# sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "geomates/model-dummy.lisp")'
 ```
 
 At the SBCL prompt, start the experiment:

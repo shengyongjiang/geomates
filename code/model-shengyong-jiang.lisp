@@ -38,8 +38,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; functions section
 
-;; comment it because it load from sbcl already
-;; (load "navigation-functions.lisp") 
+(defparameter *platforms* nil "List of platforms with (x y width height)")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -72,6 +71,7 @@
 
   (chunk-type goal state intention)
   (chunk-type control intention button)
+  (chunk-type platform-record x y width height)
 
     ;; who-i-am: the name of the agent, could be "yellow-disc" or "red-rect"
     ;; phase 0: initial status
@@ -111,19 +111,98 @@
                             is-disc 0 speed 0 disc-x nil disc-y nil 
                             is-rect 0 expand 0 rect-x nil rect-y nil 
                             diamond-x nil diamond-y nil 
-                            phase 0)
+                            phase 0
+                            )
 
    (first-goal isa goal state i-dont-know-who-i-am)
-   (second-goal isa goal state searching-for-diamond)
-   (third-goal isa goal state dummy-moving-right-up intention test-initialize)
+   (second-goal isa goal intention initialize-platforms)
    ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
 
-   (goal-focus first-goal)
-  ;;   (goal-focus second-goal)
-  ;;(goal-focus third-goal)
+   ;;(goal-focus first-goal)
+   (goal-focus second-goal)
 
 
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; ui-platforms
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Production to start finding platforms
+    (chunk-type platform-record x y width height)  ;; Add this below other chunk-types
+
+    ;; Updated productions
+    (p find-platforms
+        =goal>
+            intention initialize-platforms
+        ?visual>
+            state free
+        ?imaginal>
+            state free
+    ==>
+        +visual-location>
+            value "platform"
+            :attended nil
+        +imaginal>
+            isa platform-record
+        =goal>
+            intention find-platforms
+        !output! ("---- 0.1.0 Searching for platforms")
+    )
+
+    (p record-platform
+        =goal>
+            intention find-platforms
+        =visual-location>
+            screen-x =x
+            screen-y =y
+        ?visual>
+            state free
+        ?imaginal>
+            state free
+        =imaginal>
+            isa platform-record
+    ==>
+        +visual>
+            cmd move-attention
+            screen-pos =visual-location
+        =imaginal>
+            isa platform-record
+            x =x
+            y =y
+        =goal>
+            intention record-platform
+        !output! ("---- 0.2.0 Found platform at x=~S y=~S" =x =y)
+    )
+
+    (p store-platform
+        =goal>
+            intention record-platform
+        =visual>
+            width =w
+            height =h
+        =imaginal>
+            isa platform-record
+            x =x
+            y =y
+    ==>
+        =goal>
+            intention initialize-platforms
+        !output! ("---- 0.3.0 Stored platform: x=~S y=~S w=~S h=~S" =x =y =w =h)
+        !eval! (push (list =x =y =w =h) *platforms*)
+    )
+
+    (p finish-platforms
+        =goal>
+            intention initialize-platforms
+        ?visual-location>
+            state error
+        =imaginal>
+    ==>
+        =goal>
+            intention nil
+        !output! ("---- 0.4.0 Finished detecting platforms")
+    )
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
