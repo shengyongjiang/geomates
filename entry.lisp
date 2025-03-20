@@ -3,5 +3,5 @@
 
 (load "code/navigation-functions.lisp")
 (load-act-r-model "code/model-shengyong-jiang.lisp")
-
+;; (load-act-r-model "code/DeepSeekAgent.lisp")
 (run-environment)

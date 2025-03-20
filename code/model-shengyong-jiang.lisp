@@ -114,14 +114,65 @@
                             phase 0
                             )
 
-   (first-goal isa goal state i-dont-know-who-i-am)
-   (second-goal isa goal intention initialize-platforms)
+   (first-goal isa goal state initializing-game)
+   ;; (first-goal isa goal state i-dont-know-who-i-am)
    ;; (first-goal isa goal state i-dont-know-where-to-go disc-x nil disc-y nil rect-x nil rect-y )
    )
 
-   ;;(goal-focus first-goal)
-   (goal-focus second-goal)
+   (goal-focus first-goal)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;; check if game initialized
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (p initialized-game-check
+        =goal>
+            state initializing-game
+    ==>
+        +visual-location>
+            value  "disc"
+        =goal>
+            state initializing-game-state
+        !output! ("---- 0.0.0 will check if game initialized")
+    )
 
+    (p initialized-game-initializing
+        =goal>
+            state initializing-game-state
+        ?visual-location>
+            state error
+        ?manual>
+            state free
+    ==>
+        +manual>
+            cmd press-key
+            key s
+            duration 1
+        =goal>
+            state waiting-for-key-press
+        !output! ("---- 0.0.0 Disc not found, pressing Enter key to initialize game")
+    )
+
+    (p wait-for-key-press-complete
+        =goal>
+            state waiting-for-key-press
+        ?manual>
+            state free  ; This ensures the key press has completed
+    ==>
+        =goal>
+            state initializing-game
+        !output! ("---- 0.0.0 Key press complete, checking again for game initialization")
+    )
+
+    (p initialized-game-finished
+        =goal>
+            state initializing-game-state
+        =visual-location>
+        ?visual-location>
+            state free
+    ==>
+        =goal>
+            state i-dont-know-who-i-am
+        !output! ("---- 0.0.0 Disc found, game initialized")
+    )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;; ui-platforms
@@ -202,7 +253,7 @@
         !output! ("---- 0.4.0 Finished detecting platforms")
     )
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

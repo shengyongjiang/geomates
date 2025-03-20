@@ -1,50 +1,66 @@
-I have a project call geomates
-the pdf is the project request
+## 提供的文件
 
+    - Practical_description_coop_int_agents_WS245_fin.pdf    是需求文档, 不可修改
+    - model-shengyong-jiang.lisp        是我的ACT-R文件, 可修改
+    - navigation-functions.lisp         是我的函数文件, 可修改        
+    - levels.lisp                       是关卡文件, 不可修改
 
-Name               Att  Loc               VALUE       SIZE        KIND     SIDES  REGULAR  COLOR  WIDTH  HEIGHT  DIAMONDS  ROTATION  OVAL  RADIUS  
------------------  ---  ----------------  ----------  ----------  -------  -----  -------  -----  -----  ------  --------  --------  ----  ------
-POLYGON-FEATURE16  NEW  ( 0.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  1      39                                        
-OVAL1              NEW  (10.0 22.5 1080)  "disc"      1.0                                                        0                   T     1.5     
-POLYGON-FEATURE18  NEW  (15.5 20.5 1080)  "platform"  0.08        POLYGON  4      TRUE     BLACK  29     1                                         
-POLYGON-FEATURE11  NEW  (20.0 26.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE13  NEW  (35.0 10.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE14  NEW  (40.0  0.5 1080)  "platform"  0.22999999  POLYGON  4      TRUE     BLACK  80     1                                         
-POLYGON-FEATURE10  NEW  (40.0 22.0 1080)  "rect"      0.17999999  POLYGON  4      TRUE     RED    32.0   2.0     0         -0.0                    
-POLYGON-FEATURE15  NEW  (40.0 39.5 1080)  "platform"  0.22999999  POLYGON  4      TRUE     BLACK  80     1                                         
-POLYGON-FEATURE19  NEW  (59.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  39     1                                         
-POLYGON-FEATURE12  NEW  (60.0 26.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE17  NEW  (79.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  1      39                                        
+阅读以上文件得到基本需求, 并且有如下的需求
 
-right now I am block and sometimes when I move rect, the rect fall down to the platfrom
+## 问题背景
+- **代理**: 矩形（红色），可以改变宽高比（例如拉长或变高）。
+- **目标**: 收集尽可能多的钻石，不必是最快或最近的。
 
-here is the step you could help me:
-1 how to use visual and visual-location module to get the platfroms ?
-2 where to save this inforamtion ?
-3 when the rect could be extand witdh to cross the gap of the platforms ?
+- **物理约束**:
+  1. **间隙**: 左右移动时，如果平台有间隙且矩形宽度不足，会掉下去，且掉落后无法返回。
+  2. **无需最短路径**: 不追求最快收集钻石，但要最大化钻石数量。
+  3. **物理因素**: 平台、重力、矩形形状影响移动可行性。
+- **关卡复杂性**:
+   1. **平台**: 多平台、不同高度、 不同间隙
+   2. **钻石**: 多个钻石位置。
+- **优先级**: 最大化钻石数量，考虑物理因素，适应多种关卡。
 
+## 算法需求
+1. **安全性优先**: 在移动前评估平台宽度和间隙，避免掉落。
+2. **探索而非优化**: 不要求最短路径，优先探索可达的钻石。
+3. **物理感知**: 将矩形宽度调整和平台特性纳入决策。
+4. **适应性**: 处理不同关卡配置，不依赖固定的地图参数。
 
-and my code is in model-dummy.lisp and navigation-functions , which I paste below index ``` 
+## 其他需求
+1. **决策**:
+   - 选择一个钻石：
+     - 当前或调整后宽度可达。
+     - 最小化掉落风险（例如避免窄间隙，除非宽度能覆盖）。
+     - 优先高平台（因掉落不可逆，先收集顶部钻石）。
+    
+2. **评估**:
+   - 对每个可见钻石：
+     - 判断**可达性**: 矩形能否移动到钻石所在平台而不掉落？
+     - 检查**安全性**: 调整宽度跨越间隙后是否稳定？
+     - 估计**成本**: 不是距离，而是风险（例如掉落可能性。
 
+3. **移动**:
+   - 如需跨越间隙，调整宽度确保安全, 当矩形代理的宽度大于2倍缝隙跨度时, 可以跨越缝隙而不会跌落
+   - 向下掉落: 仅在以下情况掉到低平台：
+        下方有钻石。
+        上方钻石已收集完（或无法到达)
+   - 高度调整: 若钻石在上方，增加高度到达，确保之后稳定。
 
-and act-R visicon  is wrapped in ####
+4. **迭代**:
+   - 收集钻石后，从新位置重新评估剩余钻石，重复流程。
 
-```
+5. **迭代**:
+    - 潜在问题
+      - 无限循环: 若无钻石可达但代理持续尝试，可能卡住。解决: 添加“放弃”条件（例如 X 次尝试无新钻石）。
 
-```
+--------------------------------------------------------------------------------------------
 
-####
-Name               Att  Loc               VALUE       SIZE        KIND     SIDES  REGULAR  COLOR  WIDTH  HEIGHT  DIAMONDS  ROTATION  OVAL  RADIUS  
------------------  ---  ----------------  ----------  ----------  -------  -----  -------  -----  -----  ------  --------  --------  ----  ------
-POLYGON-FEATURE16  NEW  ( 0.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  1      39                                        
-OVAL1              NEW  (10.0 22.5 1080)  "disc"      1.0                                                        0                   T     1.5     
-POLYGON-FEATURE18  NEW  (15.5 20.5 1080)  "platform"  0.08        POLYGON  4      TRUE     BLACK  29     1                                         
-POLYGON-FEATURE11  NEW  (20.0 26.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE13  NEW  (35.0 10.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE14  NEW  (40.0  0.5 1080)  "platform"  0.22999999  POLYGON  4      TRUE     BLACK  80     1                                         
-POLYGON-FEATURE10  NEW  (40.0 22.0 1080)  "rect"      0.17999999  POLYGON  4      TRUE     RED    32.0   2.0     0         -0.0                    
-POLYGON-FEATURE15  NEW  (40.0 39.5 1080)  "platform"  0.22999999  POLYGON  4      TRUE     BLACK  80     1                                         
-POLYGON-FEATURE19  NEW  (59.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  39     1                                         
-POLYGON-FEATURE12  NEW  (60.0 26.0 1080)  "diamond"   1.0         POLYGON                                                                          
-POLYGON-FEATURE17  NEW  (79.5 20.5 1080)  "platform"  0.11        POLYGON  4      TRUE     BLACK  1      39                                        
-####
+## 算法
+现在可以开始将其转化为 ACT-R 的路径寻找算法。
+我们将基于矩形代理的需求设计一系列生产规则（productions），逐步实现决策、评估、移动和迭代的逻辑。
+给出逐步分解的过程，先用英文和中文描述，然后提供代码框架，确保与 GeoMates 任务和物理约束一致。
+
+## 代码需求
+寻路功能或者移动方向 可以单独抽取成 lisp 函数以实现复杂的功能
+假设平台的位置可以从 lisp 中读取
+钻石的位置可以简化成 用 ACT-R 找到 任意一个钻石
