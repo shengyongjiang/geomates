@@ -372,7 +372,7 @@
     )
 
 
-        (p find-diamond-locations
+    (p find-diamond-locations
         =goal>
             intention       update-ui
             sub-intention   searching-diamond
@@ -382,6 +382,7 @@
         +visual-location>
             value "diamond"
             ;; :attended nil
+            screen-y highest
             screen-x lowest
         =goal>
             sub-intention evaluating-diamond-locations
@@ -651,7 +652,7 @@
             diamond-y =diamy
     ==>
         !bind! =query-move-intention (find-next-action-rect =rx =ry =rw =rh =diamx =diamy)
-        !bind! =repeatly 6
+        !bind! =repeatly 4
         =imaginal>
         =goal>  
             intention       =query-move-intention
@@ -688,6 +689,36 @@
             sub-intention nil
             callback-intention query-move   ;; use callback-intention to implment loop actioin
         !output! ("---- 3.1.3 Moving up end, update ui")
+    )
+
+     (p perform-move-down-start
+        =goal>
+            intention       move-down
+            > repeatly      0
+            repeatly        =repeatly
+        ?manual>
+            state free
+    ==>
+        !bind! =next-repeatly (- =repeatly 1)
+        +manual>
+            cmd press-key
+            key s
+            duration 0.2
+        =goal>
+            repeatly        =next-repeatly
+        !output! ("---- 3.1.3 Moving down with 's'")
+    )
+
+    (p perform-move-down-end
+        =goal>
+            intention       move-down
+            repeatly        0
+    ==>
+        =goal>
+            intention     update-ui
+            sub-intention nil
+            callback-intention query-move   ;; use callback-intention to implment loop actioin
+        !output! ("---- 3.1.3 Moving down end, update ui")
     )
 
     (p perform-move-left-start
