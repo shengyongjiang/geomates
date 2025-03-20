@@ -1,5 +1,9 @@
 # GeoMates Setup Guide for macOS
 
+**Important Note**
+
+If you already setup geomates from <https://gitlab.isp.uni-luebeck.de/hai/geomates>, please check the <https://github.com/shengyongjiang/geomates/blob/master/quick-README.md> to run this project
+
 This guide is a amendement readme.md for porject of <https://gitlab.isp.uni-luebeck.de/hai/geomates/-/blob/main/README.md?ref_type=heads> , it will help you set up and run the GeoMates environment on macOS.
 
 ## Prerequisites
@@ -63,7 +67,7 @@ To view the game interface, start a local web server:
 python -m http.server 8081
 ```
 
-You can now access the game interface at http://localhost:8081/viewer.html
+You can now access the game interface at <http://localhost:8081/viewer.html>
 
 ### 5.  Download and Unzip ACT-R 7.x
 
@@ -105,7 +109,6 @@ To run the experiment:
 ```lisp
 (geomates-experiment)
 ```
-
 
 ## Troubleshooting
 
