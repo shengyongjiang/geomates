@@ -13,6 +13,8 @@ services:
       - ./geomates/viewer.html:/usr/src/app/geomates/viewer.html
       - ./geomates/model-dummy.lisp:/usr/src/app/geomates/model-dummy.lisp
       - ./geomates/act-r-experiment.lisp:/usr/src/app/geomates/act-r-experiment.lisp
-      # Add more files as needed
-    command: sbcl --script geomates.lisp
+      - ./geomates/geomates.lisp:/usr/src/app/geomates/geomates.lisp
     working_dir: /usr/src/app/geomates
+    command: tail -f /dev/null      # Keeps container running indefinitely
+    tty: true                       # Enables terminal allocation
+    stdin_open: true                # Keeps stdin open for interaction
