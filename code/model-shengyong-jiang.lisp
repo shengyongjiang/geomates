@@ -145,7 +145,7 @@
         +manual>
             cmd press-key
             key s
-            duration 1
+            ;; duration 1
         =goal>
             state waiting-for-key-press
         !output! ("---- 0.0.0 Disc not found, pressing Enter key to initialize game")
