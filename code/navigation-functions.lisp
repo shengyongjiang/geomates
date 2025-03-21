@@ -14,25 +14,33 @@
 
 (defun find-next-action-disc (diamond-x diamond-y disc-x disc-y rect-x rect-y rect-width rect-height)
   "Determine the next action for the disc to move toward the diamond.
-   Returns one of: 'move-up, 'move-down, 'move-left, 'move-right, or nil if at the target."
+   Returns one of: 'move-up, 'move-down, 'move-left, 'move-right, 'right-high-jump, 'left-high-jump, or nil if at the target."
   
-  ;; Define disc radius and buffer as constants
-  (let ((disc-radius 1)
-        (buffer-distance 0.5))
+  (let* (
+         (disc-radius 1)
+         (buffer-distance 0.5)
+        ;;  (rect-left (- rect-x (/ rect-width 2)))
+        ;;  (rect-right (+ rect-x (/ rect-width 2)))
+        )
     
-    ;; Original logic (commented out for debugging)
     (cond
       ;; If at the target, return nil
-      ((and (= disc-x diamond-x) (= disc-y diamond-y)) nil)
+      ((< (abs (- disc-x diamond-x)) buffer-distance) 'move-up)
       
-      ;; ((and rect-x (< (+ disc-x disc-radius buffer-distance) rect-x)) 'move-up)
-      ((or (> disc-x diamond-x) (< (abs (- disc-x diamond-x)) buffer-distance)) 'move-up)
+      ;; High jump actions based on rectangle position
+      ;; ((> rect-left disc-x) 'right-high-jump)
+      ;; ((< rect-right disc-x) 'left-high-jump)
       
+      ;; Regular horizontal movement
       ((< disc-x diamond-x) 'move-right)
       ((> disc-x diamond-x) 'move-left)
       
-      ;; ((< disc-y diamond-y) 'move-down)
-      (t nil))))
+      ;; Vertical movement
+      ((< disc-y diamond-y) 'move-down)
+      ((> disc-y diamond-y) 'move-up)
+      
+      ;; Default case
+      ('move-up))))
 
 (defun find-next-action-rect (rect-x rect-y rect-width rect-height diamond-x diamond-y)
   "Determine the next action for the rectangle to move toward the diamond with safety checks.
@@ -40,7 +48,7 @@
   (let* ((rect-right (+ rect-x (/ rect-width 2)))
          (rect-left (- rect-x (/ rect-width 2)))
          (rect-top (+ rect-y (/ rect-height 2)))
-         (rect-bottom (- rect-y (/ rect-height 2)))
+        ;;  (rect-bottom (- rect-y (/ rect-height 2)))
          (half-width (/ rect-width 4)))
     
     (multiple-value-bind (platform-gap-x-left platform-gap-x-right)

@@ -66,7 +66,6 @@
         :step t
         :trace-detail high
         :v t
-        :real-time 300
     )        
 
   (chunk-type goal state intention)
@@ -145,7 +144,6 @@
         +manual>
             cmd press-key
             key s
-            ;; duration 1
         =goal>
             state waiting-for-key-press
         !output! ("---- 0.0.0 Disc not found, pressing Enter key to initialize game")
@@ -627,7 +625,7 @@
             diamond-y =diamy
     ==>
         !bind! =query-move-intention (find-next-action-disc =diamx =diamy =dx =dy =rx =ry =rw =rh)
-        !bind! =repeatly 1
+        !bind! =repeatly 2
         =imaginal>
         =goal>  
             intention       =query-move-intention
