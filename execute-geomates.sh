@@ -7,7 +7,7 @@
 SESSION="geomates-1"
 WINDOW_NAME="geomates-work"
 WINDOW_INDEX=1  # The new window will be created as window 1
-WORKING_DIR="/Users/shengyongjiang/doc-personal/lubeck-modules/31_Intelligent_Agents/DeepSeek_ICA_Agent"
+WORKING_DIR="~/lubeck-modules/31_Intelligent_Agents/DeepSeek_ICA_Agent"
 
 # Kill window function
 kill_window() {
@@ -78,9 +78,13 @@ send_command() {
 }
 
 # Execute commands in respective panes
-send_command 0 "docker-compose down && docker-compose up -d && docker-compose logs -f"
-send_command 1 "sleep 2 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
-send_command 2 "sleep 2 && telnet localhost 45678"
+# send_command 0 "docker-compose up -d && docker-compose logs -f"
+# send_command 0 "docker-compose down && docker-compose up -d && docker-compose logs -f"
+# send_command 0 "docker exec -it deepseek_ica_agent_geomates_1 bash -c 'sbcl --script geomates.lisp'"
+# send_command 0 "docker exec -it deepseek_ica_agent_geomates_1  sbcl --script geomates.lisp"
+send_command 0 "docker-compose restart && docker exec -it deepseek_ica_agent_geomates_1  sbcl --script geomates.lisp"
+send_command 1 "sleep 0.1 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
+send_command 2 "sleep 1 && telnet localhost 45678"
 
 # Original command for reference
 # send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
