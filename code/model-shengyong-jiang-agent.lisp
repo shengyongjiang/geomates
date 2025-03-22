@@ -67,18 +67,19 @@
         :visual-finst-span 10
         :visual-onset-span 4.0
         :visual-num-finsts 10
-        ;; :step t
-        ;; :use-temporal t
         :temporal t
     )        
 
     ;; sub-intention:       a gropu of different small proucctioon under main intention
-    ;; callback-intention:  when sub-intention is finished, the callback-intention, 
+    ;; callback-intention:  when sub-intention is finished, the callback-intention
     ;;                      so the intention/sub-intention can be used as a group of hooks (like UI update for all elements)
-  (chunk-type goal state intention 
-                sub-intention 
-                callback-intention
-                )
+    (chunk-type goal
+        state
+        intention
+        sub-intention
+        callback-intention
+    )
+    (chunk-type time ticks)
   (chunk-type control intention button)
   (chunk-type platform-record x y width height)
   (chunk-type time ticks)
@@ -148,7 +149,7 @@
             key s
         =goal>
             state waiting-for-key-press
-        !output! ("---- 0.0.0 Disc not found, pressing s key to initialize game")
+        !output! ("---- 0.0.0 Disc not found, pressing some key to initialize game")
     )
 
     (p wait-for-key-press-complete
@@ -177,7 +178,6 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;; ui-platforms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
     ;; Updated productions
     (p find-platforms
         =goal>
@@ -461,7 +461,7 @@
         +temporal>
             isa time
             ticks 0
-        !output! ("---- 1.1.0 Moving righ, starting timer")
+        !output! ("---- 1.1.0 Moving right, starting timer")
     )
 
     (p check-ui-update-timer
@@ -550,7 +550,7 @@
             cmd move-attention  
             screen-pos =visual-location
         =goal>
-            intention   ready-to-random-move
+            intention   ready-re-find-yellow-disc
         =imaginal>
             rect-x =new-rect-x
         !output! ("---- 1.3.1 Found red block at same position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
