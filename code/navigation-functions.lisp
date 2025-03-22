@@ -30,27 +30,61 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun find-next-action-disc-queue (diamond-x diamond-y disc-x disc-y rect-x rect-y rect-width rect-height)
   "Determine the next action for the disc to move toward the diamond.
-   Returns one of: 'move-up, 'move-down, 'move-left, 'move-right, 'right-high-jump, 'left-high-jump, or nil if at the target."
+   Returns one of: 'w:move-up, 's:move-down, 'a:move-left, 'd:move-right, 'right-high-jump, 'left-high-jump, or nil if at the target.
+   Note: actions are string could be WD, wwww etc, which means the agent will keep moving
+   WD means the agent will move up and right later
+   wwww means the agent will keep moving up by 4 times
+   "
   
   (let* (
          (disc-radius 1)
-         (buffer-distance 5)
-        ;;  (rect-left (- rect-x (/ rect-width 2)))
-        ;;  (rect-right (+ rect-x (/ rect-width 2)))
+         (buffer-distance 3)
+         (rect-left (- rect-x (/ rect-width 2)))
+         (rect-right (+ rect-x (/ rect-width 2)))
+         (rect-top (+ rect-y (/ rect-height 2)))
          (target-x diamond-x) ;; Set target-x to diamond-x as first step
          (target-y diamond-y) ;; Set target-y to diamond-y as first step
         )
     
+    ;; Check if rectangle is between disc and diamond
     (cond
-      ;; Regular horizontal movement
-      ((< disc-x target-x) "d")
-      ((> disc-x target-x) "a")
-      
+      ;; If disc is left of diamond (disc-x < diamond-x)
+      ((and (< disc-x diamond-x) 
+            (> rect-x disc-x) 
+            (< rect-x diamond-x)
+            (< disc-y rect-top))  ; Only if disc is below rect-top
+       ;; If rect is right of disc (which it is in this condition)
+       (setq target-x (- rect-left 2)
+             target-y (+ rect-top 2)))
+            
+      ;; If disc is right of diamond (disc-x > diamond-x)
+      ((and (> disc-x diamond-x) 
+            (< rect-x disc-x) 
+            (> rect-x diamond-x)
+            (< disc-y rect-top))  ; Only if disc is below rect-top
+       ;; If rect is left of disc (which it is in this condition)
+       (setq target-x (+ rect-right 2)
+             target-y (+ rect-top 2)))
+             
+      ;; If disc is above rect-top, target remains diamond
+      ((> disc-y rect-top)
+       (setq target-x diamond-x
+             target-y diamond-y)))
+
+    (cond
+
       ;; todo :
       ;; 1. if disc and diamond are some platfrom, then do
       ;; 2. is disc is above/under diamond platfrom, then do move to the platform
-      ((and (< disc-y target-y) 
-            (< (abs (- disc-x target-x)) buffer-distance)) "w")
+      ((and (< disc-y target-y)
+            (< (abs (- disc-x target-x)) buffer-distance))
+       (cond ((< disc-x target-x) "wd")
+             ((> disc-x target-x) "ad") 
+             (t "w")))
+
+      ;; Regular horizontal movement
+      ((< disc-x target-x) "d")
+      ((> disc-x target-x) "a")
       
       ;; Default case
       ("w"))))
@@ -99,6 +133,9 @@
           (t "s"))))))
 
 
+;; todo : add tempral buffer for the action
+;; ex: .  waiting 0.5 second, then do action, and 1-9 is 1-9 seconds
+;;    
 (defun convert-wasd-to-move (action)
             "Convert WASD string to move action symbols"
             (cond ((string= action "w") 'move-up)
