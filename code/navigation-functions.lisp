@@ -5,8 +5,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun find_gap (rect-x rect-y rect-width rect-height)
-  "Return hardcoded platform gap coordinates (left edge, right edge)"
-  (values 30 40))
+  "Find platform gaps at the level of rect-bottom.
+   Returns the left and right x-coordinates of the gap.
+   Debug version: only handles specific cases with buffer of 2."
+  (let* ((rect-bottom (- rect-y (/ rect-height 2)))
+         (buffer 2))
+    
+    (cond
+      ;; If rect-bottom is around 21 (with buffer of 2)
+      ((and (>= rect-bottom (- 21 buffer))
+            (<= rect-bottom (+ 21 buffer)))
+       (values 30 40))
+      
+      ;; If rect-bottom is around 1 (with buffer of 2)
+      ((and (>= rect-bottom (- 1 buffer))
+            (<= rect-bottom (+ 1 buffer)))
+       (values 0 0))
+      
+      ;; Default case
+      (t (values 0 0)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Navigation decision functions
@@ -42,8 +59,7 @@
       ("w"))))
 
 (defun find-next-action-rect-queue (rect-x rect-y rect-width rect-height diamond-x diamond-y)
-  "Determine the next action for the rectangle to move toward the diamond with safety checks.
-   Returns one of: 'move-up, 'move-down, 'move-left, 'move-right, or nil if at target."
+  "Determine the next action for the rectangle to move toward the diamond."
   (let* ((rect-right (+ rect-x (/ rect-width 2)))
          (rect-left (- rect-x (/ rect-width 2)))
          (rect-top (+ rect-y (/ rect-height 2)))
@@ -53,16 +69,23 @@
     (multiple-value-bind (platform-gap-x-left platform-gap-x-right)
         (find_gap rect-x rect-y rect-width rect-height)
     
-      (let ((gap-size (- platform-gap-x-right platform-gap-x-left)))
+      (let ((gap-size (- platform-gap-x-right platform-gap-x-left))
+            (gap-center (/ (+ platform-gap-x-left platform-gap-x-right) 2)))
         (cond
-          ;; At target
+          ;; NEW: Check if diamond is below and try to use gap
+          ((and (< diamond-y rect-y)                    ; Diamond is below
+                (> gap-size 0)                          ; Gap exists
+                ) 
+           (cond ((< (abs (- rect-x gap-center)) 4) "wwwwww")
+                ((< rect-x gap-center) "d")   ; Move right towards gap
+                (t "a")))                     ; Move left towards gap
+          
+          ;; Your existing conditions remain unchanged
           ((and (= rect-x diamond-x) (= rect-y diamond-y)) nil)
           
-          ;; Horizontal movement to align with diamond
           ((< rect-right diamond-x) 
            (if (> rect-right platform-gap-x-right)
                "dddd"
-               ;; If there's a gap and it's too wide, move down to increase width
                (if (and (> gap-size 0) (> gap-size stable-width))
                    "ssss"
                    "dddd")))
@@ -70,14 +93,12 @@
           ((> rect-left diamond-x) 
            (if (< rect-left platform-gap-x-left)
                "aaaa"
-               ;; If there's a gap and it's too wide, move down to increase width
                (if (and (> gap-size 0) (> gap-size stable-width))
                    "ssss"
                    "aaaa")))
           
-          ;; Vertical movement if horizontally aligned
           ((< rect-top diamond-y) "wwww")
-          (t nil))))))
+          (t "s"))))))
 
 
 (defun convert-wasd-to-move (action)
