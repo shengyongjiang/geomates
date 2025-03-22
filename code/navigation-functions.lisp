@@ -133,22 +133,22 @@
           ;; Horizontal movement to align with diamond
           ((< rect-right diamond-x) 
            (if (> rect-right platform-gap-x-right)
-               "aaaaaa"
+               "dddd"
                ;; If there's a gap and it's too wide, move down to increase width
                (if (and (> gap-size 0) (> gap-size half-width))
-                   "ssssss"
-                   "rrrrrr")))
+                   "ssss"
+                   "rrrr")))
           
           ((> rect-left diamond-x) 
            (if (< rect-left platform-gap-x-left)
-               "aaaaaa"
+               "aaaa"
                ;; If there's a gap and it's too wide, move down to increase width
                (if (and (> gap-size 0) (> gap-size half-width))
-                   "dddddd"
-                   "aaaaaa")))
+                   "dddd"
+                   "aaaa")))
           
           ;; Vertical movement if horizontally aligned
-          ((< rect-top diamond-y) "wwwwww")
+          ((< rect-top diamond-y) "wwww")
           (t nil))))))
 
 
