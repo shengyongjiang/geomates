@@ -78,16 +78,16 @@
       ;; 2. is disc is above/under diamond platfrom, then do move to the platform
       ((and (< disc-y target-y)
             (< (abs (- disc-x target-x)) buffer-distance))
-       (cond ((< disc-x target-x) "wd")
-             ((> disc-x target-x) "ad") 
-             (t "w")))
+       (cond ((< disc-x target-x) "w.d")
+             ((> disc-x target-x) "w.a") 
+             (t "w.")))
 
       ;; Regular horizontal movement
-      ((< disc-x target-x) "d")
-      ((> disc-x target-x) "a")
+      ((< disc-x target-x) "d.")
+      ((> disc-x target-x) "a.")
       
       ;; Default case
-      ("w"))))
+      ("w."))))
 
 (defun find-next-action-rect-queue (rect-x rect-y rect-width rect-height diamond-x diamond-y)
   "Determine the next action for the rectangle to move toward the diamond."
@@ -142,6 +142,7 @@
                   ((string= action "s") 'move-down) 
                   ((string= action "a") 'move-left)
                   ((string= action "d") 'move-right)
+                  ((string= action ".") 'wait-up)
                   (t nil)))          
 
 
