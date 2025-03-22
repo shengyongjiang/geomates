@@ -66,6 +66,10 @@ sleep 0.5
 # Make all panes equal size
 tmux select-layout -t "$SESSION:$WINDOW_INDEX" tiled
 
+# Resize the top panes to make the first row smaller
+tmux resize-pane -t "$SESSION:$WINDOW_INDEX.0" -y 10
+tmux resize-pane -t "$SESSION:$WINDOW_INDEX.1" -y 10
+
 # Function to send commands to a specific pane
 send_command() {
     local pane=$1
@@ -86,8 +90,10 @@ send_command 0 "cd $WORKING_DIR && docker exec -it deepseek_ica_agent_geomates_1
 send_command 1 "sleep 1.5 && open -a \"Google Chrome\" \"http://localhost:8081/viewer.html\""
 
 # send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
-send_command 2 "sleep 2.5 && sbcl --load \"entry.lisp\""
-send_command 3 "sleep 2.5 && sbcl --load \"entry.lisp\""
+send_command 2 "sleep 2.5 && sbcl --load \"agent.lisp\""
+send_command 3 "sleep 3 && sbcl --load \"agent2.lisp\""
+# send_command 3 "sleep 2.5 && telnet localhost 45678"
+
 
 # Select pane 3 (second row) to make it active
 tmux select-pane -t "$SESSION:$WINDOW_INDEX.3"

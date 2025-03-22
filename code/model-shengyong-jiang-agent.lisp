@@ -37,8 +37,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; functions section
-
-(defparameter *platforms* nil "List of platforms with (x y width height)")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -46,7 +44,7 @@
 ;;; Now comes the core Act-R agent
 ;;;
 
-(define-model lost-agent
+(define-model lost-agent1
 
   ;; [find explanation in actr7.x/examples/vision-module]
   (chunk-type (polygon-feature (:include visual-location)) regular)
@@ -64,8 +62,12 @@
   ;; Set global parameters
     (sgp 
         :step t
-        :trace-detail high
+        ;; :trace-detail high
         :v t
+        :show-focus t
+        :visual-finst-span 10
+        :visual-onset-span 4.0
+        :visual-num-finsts 10
     )        
 
   (chunk-type goal state intention)
@@ -286,7 +288,7 @@
         ;; !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
     )
 
-    (p attend-to-yellow-disc
+    (p attend-to-yellow-dis0c
         =goal>
             intention       update-ui
             sub-intention   searching-for-yellow-disc
@@ -678,7 +680,7 @@
             action-queue =left-action
         =goal>  
             intention  =first-action-symbol
-        !output! ("---- 2.1.3b decide next action for rect")
+        !output! ("---- 2.1.3b decide next action for disc")
         !output! ("---- 2.1.3b action queue: ~S" =find-action-queue)
         !output! ("---- 2.1.3b first action: ~S" =first-action)
         !output! ("---- 2.1.3b rest action: ~S" =left-action)
@@ -715,8 +717,6 @@
         !output! ("---- 2.1.3a rest action: ~S" =left-action)
         !output! ("---- 2.1.3a first action symbol: ~S" =first-action-symbol)
     )
-
- 
 
     (p decide-queue-query-move
             =goal>
