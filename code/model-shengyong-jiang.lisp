@@ -89,6 +89,7 @@
                                 is-rect expand rect-x rect-y rect-width rect-height
                                 diamond-x diamond-y
                                 phase
+                                action-queue
                                 )
 
   (add-dm
@@ -111,6 +112,7 @@
                             is-rect 0 expand 0 rect-x nil rect-y nil 
                             diamond-x nil diamond-y nil 
                             phase 0
+                            action-queue ""
                             )
 
    (first-goal isa goal state initializing-game)
@@ -525,7 +527,7 @@
             screen-pos =visual-location
         =goal>
             state       query-moving-collect
-            intention   query-move
+            intention   reload-query-move
         =imaginal>
             disc-x =new-disc-x
             is-disc 1
@@ -588,7 +590,7 @@
             screen-pos =visual-location
         =goal>
             state       query-moving-collect
-            intention   query-move
+            intention   reload-query-move
         =imaginal>
             rect-x =new-rect-x
             is-rect 1
@@ -605,11 +607,55 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+   (p query-moving-collect-reload
+        =goal>
+            state       query-moving-collect
+            intention   queue-query-move
+        =imaginal>
+            action-queue ""
+    ==>
+        =imaginal>
+        =goal>
+            intention          update-ui
+            callback-intention reload-query-move
+        !output! ("---- 3.1.0 reload action queue")
+    )
+
+    (p query-moving-collect-consume
+        =goal>
+            state       query-moving-collect
+            intention   queue-query-move
+        =imaginal>
+            action-queue =action-queue
+            - action-queue ""
+    ==>
+        =imaginal>
+        =goal>
+            intention   consume-queue-query-move
+        !output! ("---- 3.1.0 consume action queue: ~S" =action-queue)
+    )
+
+    ;; todo: delete maybe 
+    ;; (p decide-queue-query-move-if-empty
+    ;;         =goal>
+    ;;             state       query-moving-collect
+    ;;             intention   consume-queue-query-move
+    ;;         ?imaginal>
+    ;;             state free
+    ;;         =imaginal>
+    ;;             action-queue =next-action-queue
+    ;;             action-queue ""
+    ;;     ==>
+    ;;         =imaginal>
+    ;;         =goal>
+    ;;             state       query-moving-collect
+    ;;             intention   reload-query-move
+    ;; )
 
     (p decide-next-action-disc
         =goal>
             state       query-moving-collect
-            intention   query-move
+            intention   reload-query-move
         ?imaginal>
             state free
         =imaginal>
@@ -624,19 +670,25 @@
             diamond-x =diamx
             diamond-y =diamy
     ==>
-        !bind! =query-move-intention (find-next-action-disc =diamx =diamy =dx =dy =rx =ry =rw =rh)
-        !bind! =repeatly 2
+        !bind! =find-action-queue (find-next-action-disc-queue =diamx =diamy =dx =dy =rx =ry =rw =rh)
+        !bind! =first-action (subseq  =find-action-queue 0 1)
+        !bind! =left-action (subseq =find-action-queue 1)
+        !bind! =first-action-symbol (convert-wasd-to-move =first-action)
         =imaginal>
+            action-queue =left-action
         =goal>  
-            intention       =query-move-intention
-            repeatly        =repeatly
-        !output! ("---- 2.1.3a decide next action for disc, next move state is ~S" =query-move-intention)
+            intention  =first-action-symbol
+        !output! ("---- 2.1.3b decide next action for rect")
+        !output! ("---- 2.1.3b action queue: ~S" =find-action-queue)
+        !output! ("---- 2.1.3b first action: ~S" =first-action)
+        !output! ("---- 2.1.3b rest action: ~S" =left-action)
+        !output! ("---- 2.1.3b first action symbol: ~S" =first-action-symbol)
     )
 
     (p decide-next-action-rect
         =goal>
             state       query-moving-collect
-            intention   query-move
+            intention   reload-query-move
         ?imaginal>
             state free
         =imaginal>
@@ -649,134 +701,104 @@
             diamond-x =diamx
             diamond-y =diamy
     ==>
-        !bind! =query-move-intention (find-next-action-rect =rx =ry =rw =rh =diamx =diamy)
-        !bind! =repeatly 4
+        !bind! =find-action-queue (find-next-action-rect-queue =rx =ry =rw =rh =diamx =diamy)
+        !bind! =first-action (subseq  =find-action-queue 0 1)
+        !bind! =left-action (subseq =find-action-queue 1)
+        !bind! =first-action-symbol (convert-wasd-to-move =first-action)
         =imaginal>
+            action-queue =left-action
         =goal>  
-            intention       =query-move-intention
-            repeatly        =repeatly
-        !output! ("---- 2.1.3b decide next action for rect, next move state is ~S" =query-move-intention)
+            intention  =first-action-symbol
+        !output! ("---- 2.1.3a decide next action for rect")
+        !output! ("---- 2.1.3a action queue: ~S" =find-action-queue)
+        !output! ("---- 2.1.3a first action: ~S" =first-action)
+        !output! ("---- 2.1.3a rest action: ~S" =left-action)
+        !output! ("---- 2.1.3a first action symbol: ~S" =first-action-symbol)
+    )
+
+ 
+
+    (p decide-queue-query-move
+            =goal>
+                state       query-moving-collect
+                intention   consume-queue-query-move
+            ?imaginal>
+                state free
+            =imaginal>
+                action-queue =next-action-queue
+                - action-queue ""
+        ==>
+            !bind! =first-action (subseq  =next-action-queue 0 1)
+            !bind! =left-action (subseq =next-action-queue 1)
+            !bind! =first-action-symbol (convert-wasd-to-move =first-action)
+
+            =imaginal>
+                action-queue =left-action
+            =goal>
+                state       query-moving-collect
+                intention   =first-action-symbol
+            !output! ("---- 2.1.3b action queue is not empty, consume action queue ~S" =next-action-queue)
+            !output! ("---- 2.1.3b first action: ~S" =first-action)
+            !output! ("---- 2.1.3b left action: ~S" =left-action) 
+            !output! ("---- 2.1.3b first action symbol: ~S" =first-action-symbol)
     )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (p perform-move-up-start
+    (p perform-move-up
         =goal>
             intention       move-up
-            > repeatly      0
-            repeatly        =repeatly
         ?manual>
             state free
     ==>
-        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key w
             duration 0.2
         =goal>
-            repeatly        =next-repeatly
+            intention   queue-query-move
         !output! ("---- 3.1.3 Moving up with 'w'")
     )
 
-    (p perform-move-up-end
-        =goal>
-            intention       move-up
-            repeatly        0
-    ==>
-        =goal>
-            intention     update-ui
-            sub-intention nil
-            callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.3 Moving up end, update ui")
-    )
-
-     (p perform-move-down-start
+    (p perform-move-down
         =goal>
             intention       move-down
-            > repeatly      0
-            repeatly        =repeatly
         ?manual>
             state free
     ==>
-        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key s
-            duration 0.2
         =goal>
-            repeatly        =next-repeatly
+            intention   queue-query-move
         !output! ("---- 3.1.3 Moving down with 's'")
     )
 
-    (p perform-move-down-end
-        =goal>
-            intention       move-down
-            repeatly        0
-    ==>
-        =goal>
-            intention     update-ui
-            sub-intention nil
-            callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.3 Moving down end, update ui")
-    )
-
-    (p perform-move-left-start
+    (p perform-move-left
         =goal>
             intention     move-left
-            > repeatly    0
-            repeatly        =repeatly
         ?manual>
             state free
     ==>
-        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key a
-            ;; duration 0.2
         =goal>
-            repeatly        =next-repeatly
+            intention   queue-query-move
         !output! ("---- 3.1.1 Moving left with 'a'")
     )
 
-    (p perform-move-left-end
-        =goal>
-            intention     move-left
-            repeatly      0
-    ==>
-        =goal>
-            intention     update-ui
-            sub-intention nil
-            callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.1 Moving left end, update ui")
-    )
-
-    (p perform-move-right-start
+    (p perform-move-right
         =goal>
             intention     move-right
-            > repeatly    0
-            repeatly      =repeatly
         ?manual>
             state free
     ==>
-        !bind! =next-repeatly (- =repeatly 1)
         +manual>
             cmd press-key
             key d
-            ;; duration 0.2
         =goal>
-            repeatly        =next-repeatly
+            intention   queue-query-move
         !output! ("---- 3.1.1 Moving right with 'd'")
-    )
-
-    (p perform-move-right-end
-        =goal>
-            intention     move-right
-            repeatly      0
-    ==>
-        =goal>
-            intention     update-ui
-            sub-intention nil
-            callback-intention query-move   ;; use callback-intention to implment loop actioin
-        !output! ("---- 3.1.1 Moving right end, update ui")
     )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
