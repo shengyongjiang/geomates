@@ -77,8 +77,9 @@
                 (> gap-size 0)                          ; Gap exists
                 ) 
            (cond ((< (abs (- rect-x gap-center)) 4) "wwwwww")
-                ((< rect-x gap-center) "d")   ; Move right towards gap
-                (t "a")))                     ; Move left towards gap
+                ((< rect-x gap-center) "dddddd")   ; Move right towards gap
+                (t "aaa")))                     ; Move left towards gap
+                ;; note: ddddddd vs aaa is by purpose, to preovent rect is block rotate at the gap
           
           ;; Your existing conditions remain unchanged
           ((and (= rect-x diamond-x) (= rect-y diamond-y)) nil)

@@ -31,7 +31,7 @@
 ;;; Now comes the core Act-R agent
 ;;;
 
-(define-model geomates-agent
+(define-model geomates-agent2
 
   ;; [find explanation in actr7.x/examples/vision-module]
   (chunk-type (polygon-feature (:include visual-location)) regular rotation diamonds value)
