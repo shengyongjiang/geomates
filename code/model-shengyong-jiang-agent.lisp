@@ -68,9 +68,19 @@
         :visual-finst-span 10
         :visual-onset-span 4.0
         :visual-num-finsts 10
+        :temporal t
     )        
 
-  (chunk-type goal state intention)
+    ;; sub-intention:       a gropu of different small proucctioon under main intention
+    ;; callback-intention:  when sub-intention is finished, the callback-intention
+    ;;                      so the intention/sub-intention can be used as a group of hooks (like UI update for all elements)
+    (chunk-type goal
+        state
+        intention
+        sub-intention
+        callback-intention
+    )
+    (chunk-type time ticks)
   (chunk-type control intention button)
   (chunk-type platform-record x y width height)
 
@@ -139,7 +149,7 @@
             key s
         =goal>
             state waiting-for-key-press
-        !output! ("---- 0.0.0 Disc not found, pressing Enter key to initialize game")
+        !output! ("---- 0.0.0 Disc not found, pressing some key to initialize game")
     )
 
     (p wait-for-key-press-complete
@@ -168,9 +178,6 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;; ui-platforms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;; Production to start finding platforms
-    (chunk-type platform-record x y width height)  ;; Add this below other chunk-types
-
     ;; Updated productions
     (p find-platforms
         =goal>
@@ -207,7 +214,6 @@
             cmd move-attention
             screen-pos =visual-location
         =imaginal>
-            isa platform-record
             x =x
             y =y
         =goal>
@@ -398,7 +404,6 @@
             intention       update-ui
             sub-intention   update-ui-end
         =imaginal>
-            isa position-record
             diamond-x =any-diamond-x
             diamond-y =any-diamond-y
         ;; !output! ("---- x.6.0 Attending to diamond at x=~S, y=~S" =any-diamond-x =any-diamond-y)
@@ -447,13 +452,46 @@
             state free
     ==>
         =goal>
-            intention   ready-re-find-yellow-disc
+            intention   waiting-for-move-update
         +manual>
             cmd press-key
             key d
-            duration 0.5
         =imaginal>
-        !output! ("---- 1.1.0 Moving right")
+        +temporal>
+            isa time
+            ticks 0
+        !output! ("---- 1.1.0 Moving right, starting timer")
+    )
+
+    (p check-ui-update-timer
+        =goal>
+            intention   waiting-for-move-update
+        ?temporal>
+            state free
+        =temporal>
+            isa time
+            ticks =ticks
+            < ticks 20
+    ==>
+        =temporal>
+        =goal>
+            intention   waiting-for-move-update
+        !output! ("---- 1.1.1 Still waiting for move update - ticks: ~D" =ticks)
+    )
+
+    (p ui-update-complete
+        =goal>
+            intention   waiting-for-move-update
+        ?temporal>
+            state free
+        =temporal>
+            ticks =ticks
+            >= ticks 20
+    ==>
+        -temporal>
+        =goal>
+            intention   ready-re-find-yellow-disc
+        !output! ("---- 1.1.2 Move update should be complete, checking positions")
     )
 
     (p ready-re-find-yellow-disc
@@ -494,6 +532,29 @@
         !output! ("---- 1.2.1 Found disc at same position: x=~S (disc position unchanged from ~S)" =new-disc-x =old-disc-x)
     )
 
+    (p re-attend-to-rect-no-change
+        =goal>
+            state       i-dont-know-who-i-am
+            intention   searching-for-rect-after-move
+        =visual-location>
+            screen-x =new-rect-x
+        =imaginal>
+            isa position-record
+            rect-x =old-rect-x
+            rect-x =new-rect-x
+        ?visual>
+            state free
+    ==>
+        +visual>
+            cmd move-attention  
+            screen-pos =visual-location
+        =goal>
+            intention   ready-re-find-yellow-disc
+        =imaginal>
+            rect-x =new-rect-x
+        !output! ("---- 1.3.1 Found red block at same position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
+    )
+
     (p re-attend-to-yellow-disc-changed
         =goal>
             state       i-dont-know-who-i-am
@@ -532,29 +593,6 @@
         =goal>
             intention   searching-for-rect-after-move
         !output! ("---- 1.3.0 Re-Find red block after moving")
-    )
-
-    (p re-attend-to-rect-no-change
-        =goal>
-            state       i-dont-know-who-i-am
-            intention   searching-for-rect-after-move
-        =visual-location>
-            screen-x =new-rect-x
-        =imaginal>
-            isa position-record
-            rect-x =old-rect-x
-            rect-x =new-rect-x
-        ?visual>
-            state free
-    ==>
-        +visual>
-            cmd move-attention  
-            screen-pos =visual-location
-        =goal>
-            intention   ready-re-find-yellow-disc
-        =imaginal>
-            rect-x =new-rect-x
-        !output! ("---- 1.3.1 Found red block at same position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
     )
 
     (p re-attend-to-rect-changed
@@ -619,23 +657,6 @@
             intention   consume-queue-query-move
         !output! ("---- 3.1.0 consume action queue: ~S" =action-queue)
     )
-
-    ;; todo: delete maybe 
-    ;; (p decide-queue-query-move-if-empty
-    ;;         =goal>
-    ;;             state       query-moving-collect
-    ;;             intention   consume-queue-query-move
-    ;;         ?imaginal>
-    ;;             state free
-    ;;         =imaginal>
-    ;;             action-queue =next-action-queue
-    ;;             action-queue ""
-    ;;     ==>
-    ;;         =imaginal>
-    ;;         =goal>
-    ;;             state       query-moving-collect
-    ;;             intention   reload-query-move
-    ;; )
 
     (p decide-next-action-disc
         =goal>
