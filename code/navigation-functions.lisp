@@ -34,26 +34,23 @@
   
   (let* (
          (disc-radius 1)
-         (buffer-distance 0.5)
+         (buffer-distance 5)
         ;;  (rect-left (- rect-x (/ rect-width 2)))
         ;;  (rect-right (+ rect-x (/ rect-width 2)))
+         (target-x diamond-x) ;; Set target-x to diamond-x as first step
+         (target-y diamond-y) ;; Set target-y to diamond-y as first step
         )
     
     (cond
-      ;; If at the target, return nil
-      ((< (abs (- disc-x diamond-x)) buffer-distance) "w")
-      
-      ;; High jump actions based on rectangle position
-      ;; ((> rect-left disc-x) 'right-high-jump)
-      ;; ((< rect-right disc-x) 'left-high-jump)
-      
       ;; Regular horizontal movement
-      ((< disc-x diamond-x) "dw")
-      ((> disc-x diamond-x) "aw")
+      ((< disc-x target-x) "d")
+      ((> disc-x target-x) "a")
       
-      ;; Vertical movement
-      ;; ((< disc-y diamond-y) "s")
-      ((> disc-y diamond-y) "w")
+      ;; todo :
+      ;; 1. if disc and diamond are some platfrom, then do
+      ;; 2. is disc is above/under diamond platfrom, then do move to the platform
+      ((and (< disc-y target-y) 
+            (< (abs (- disc-x target-x)) buffer-distance)) "w")
       
       ;; Default case
       ("w"))))

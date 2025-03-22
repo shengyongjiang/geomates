@@ -437,6 +437,8 @@
     ==>
         +imaginal>
             isa position-record
+            is-disc 0
+            is-rect 0
         =goal>
             state               i-dont-know-who-i-am
             intention           update-ui
@@ -550,7 +552,7 @@
             cmd move-attention  
             screen-pos =visual-location
         =goal>
-            intention   ready-re-find-yellow-disc
+            intention   ready-to-move-right
         =imaginal>
             rect-x =new-rect-x
         !output! ("---- 1.3.1 Found red block at same position: x=~S (block position unchanged from ~S)" =new-rect-x =old-rect-x)
