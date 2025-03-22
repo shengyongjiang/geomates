@@ -74,23 +74,13 @@
   (chunk-type control intention button)
   (chunk-type platform-record x y width height)
 
-    ;; who-i-am: the name of the agent, could be "yellow-disc" or "red-rect"
-    ;; phase 0: initial status
-    ;; phase 10: found yellow disc
-    ;; phase 20: found red block
-    ;; phase 30: moving left
-    ;; phase 40: found yellow disc after moving
-    ;; phase 50: retrieved previous position record and compared with current position
-
+    ;; speed and expand are reserver for future use
     ;; disc speed: 0 not moving, 1 moving right once 2 move right twice etc, and - is moving left
     ;; block expand: 0 not expand, 1 expand  once 2 expand twice etc
-
-    ;;; todo : clean up  who-i-am phase slot
     (chunk-type position-record 
                                 is-disc speed  disc-x disc-y 
                                 is-rect expand rect-x rect-y rect-width rect-height
                                 diamond-x diamond-y
-                                phase
                                 action-queue
                                 )
 
@@ -113,7 +103,6 @@
                             is-disc 0 speed 0 disc-x nil disc-y nil 
                             is-rect 0 expand 0 rect-x nil rect-y nil 
                             diamond-x nil diamond-y nil 
-                            phase 0
                             action-queue ""
                             )
 
@@ -282,7 +271,6 @@
             value       "disc"
         =imaginal>
             isa position-record
-            phase 0
         =goal>
             sub-intention searching-for-yellow-disc
         ;; !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
@@ -306,7 +294,6 @@
             ;; speed 0
             disc-x =x
             disc-y =y
-            phase 10
         =goal>
             sub-intention   ready-to-find-red-rect
         ;; !output! ("---- x.1.0 Moving attention to object at x: ~S y: ~S" =x =y)
@@ -325,7 +312,6 @@
             ;; :attended   nil
         =goal>
             sub-intention   searching-for-rect
-            phase 20
         ;; !output! ("---- x.2.0 Searching for red block with specific criteria")
     )
 
@@ -347,7 +333,6 @@
             ;; expand 0
             rect-x =x
             rect-y =y
-            phase 30
         =goal>
             sub-intention   ready-to-get-rect-size
         ;; !output! ("---- x.3.0 Moving attention to object at x: ~S y: ~S" =x =y)
@@ -367,7 +352,6 @@
         =imaginal>
             rect-width =w
             rect-height =h
-            phase 40
         =goal>
             sub-intention   searching-diamond
         ;; !output! ("---- x.4.0 Got rectangle size: width=~S height=~S" =w =h)
@@ -447,7 +431,6 @@
     ==>
         +imaginal>
             isa position-record
-            phase 0
         =goal>
             state               i-dont-know-who-i-am
             intention           update-ui
