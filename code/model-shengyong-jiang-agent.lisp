@@ -83,6 +83,7 @@
     (chunk-type time ticks)
   (chunk-type control intention button)
   (chunk-type platform-record x y width height)
+  (chunk-type time ticks)
 
     ;; speed and expand are reserver for future use
     ;; disc speed: 0 not moving, 1 moving right once 2 move right twice etc, and - is moving left
