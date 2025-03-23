@@ -3,7 +3,7 @@
 ## Running our project
 
 Other steps are the same, except for running the ACT-R agent is called by:
-`sbcl --load "agent.lisp"`
+`sbcl --load "agent.lisp"`, and for a differnt agent2 `sbcl --load "agent2.lisp"`
 
 (Replacement of
 `sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "code/model-deepseek-agent1.lisp")'
@@ -20,22 +20,25 @@ Assume ACT-R, box2d and geomates server are all set up, with the below folder st
 │   ├── load-act-r.lisp           # Script to load ACT-R
 │   └── etc.
 │
-├── geomates/                     # Main game folder
-│   ├── act-r-experiment.lisp     # Interface between ACT-R and the game
-│   ├── geomates.lisp             # Main game server implementation
-│   ├── levels.lisp               # Game level definitions
-│   ├── model-dummy.lisp          # Basic ACT-R agent model
-│   ├── README.md                 # This documentation file
-│   ├── viewer.html               # Web-based game viewer
+├── geomates/ # Provided Game folder (no changes except levels.php)
+│   ├── levels.lisp     # Test levels, Need to be put here and rebuild docker
 │   └── etc.
 │
 ├── code/                         # Agent code folder
-│   ├── model-deepseek-agent1.lisp
-│   └── navigation-functions.lisp
+│   │── levels.lisp  # Test levels(A simple copy from geomates/levels.lisp for project submision)
+│   │     
+│   ├── model-deepseek-agent1.lisp  # Agent1 model
+│   ├── navigation-functions.lisp   # Agent1 function
+│   │
+|   └── model-deepseek-agent2.lisp  # Agent2 function
 │
-├── agent.lisp                    # Main entry point for running the ACT-R agent
+├── agent.lisp              # Entry point for running agent1
+├── agent2.lisp             # Entry point for running agent2
+|
+├── quick-README.md         # if you have setup env, just want test our model quickly
+├── README.md               # if you want chekc how to setup env and run this project from beging
 │
-└── Dockerfile                    # Docker configuration for containerized setup
+└── docker-compose.yml       # Docker Compose configuration for containerized setup
 
 
 navigation-functions.lisp
