@@ -82,7 +82,7 @@
     )
     (chunk-type time ticks)
   (chunk-type control intention button)
-  (chunk-type platform-record x y width height)
+  (chunk-type platform-record name x y width height)
   (chunk-type time ticks)
 
     ;; speed and expand are reserver for future use
@@ -172,7 +172,7 @@
             state free
     ==>
         =goal>
-            state i-dont-know-who-i-am
+            state initialize-platforms
         !output! ("---- 0.0.0 Disc found, game initialized")
     )
 
@@ -180,9 +180,9 @@
     ;;; ui-platforms
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; Updated productions
-    (p find-platforms
+    (p platform-find-platforms
         =goal>
-            intention initialize-platforms
+            state initialize-platforms
         ?visual>
             state free
         ?imaginal>
@@ -198,7 +198,7 @@
         !output! ("---- 0.1.0 Searching for platforms")
     )
 
-    (p record-platform
+    (p platform-record-platform
         =goal>
             intention find-platforms
         =visual-location>
@@ -222,7 +222,7 @@
         !output! ("---- 0.2.0 Found platform at x=~S y=~S" =x =y)
     )
 
-    (p store-platform
+    (p platform-store-platform
         =goal>
             intention record-platform
         =visual>
@@ -233,22 +233,46 @@
             x =x
             y =y
     ==>
+        ;; Create a new chunk in declarative memory
+        +imaginal>
+            isa platform-record
+            name platform
+            x =x
+            y =y
+            width =w
+            height =h
         =goal>
-            intention initialize-platforms
-        !output! ("---- 0.3.0 Stored platform: x=~S y=~S w=~S h=~S" =x =y =w =h)
-        !eval! (push (list =x =y =w =h) *platforms*)
+            intention commit-platform
+        !output! ("---- 0.3.0 Creating platform in imaginal buffer: x=~S y=~S w=~S h=~S" =x =y =w =h)
     )
 
-    (p finish-platforms
+    ;; Add a new production to commit the platform to DM
+    (p platform-commit-platform-to-dm
         =goal>
-            intention initialize-platforms
+            intention commit-platform
+        =imaginal>
+            isa platform-record
+        ?imaginal>
+            state free
+    ==>
+        ;; Clear the imaginal buffer and commit to DM
+        -imaginal>
+        =goal>
+            intention find-platforms
+        !output! ("---- 0.3.1 Committed platform to declarative memory")
+    )
+
+    ;; Key fix: Handle the case when no more platforms are found
+    (p platform-find-failure
+        =goal>
+            intention find-platforms
         ?visual-location>
             state error
-        =imaginal>
     ==>
         =goal>
+            state i-dont-know-who-i-am
             intention nil
-        !output! ("---- 0.4.0 Finished detecting platforms")
+        !output! ("---- 0.4.0 No more platforms found, moving to next state")
     )
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -396,7 +420,6 @@
         ?visual>
             state free
         ;; - visual-location>  ;; Ensure this is the first match (simplistic closest check)
-        ;; todo : maybe we could start any diamond location, search for the nearest one anyway
     ==>
         +visual>
             cmd move-attention
