@@ -82,7 +82,7 @@
     )
     (chunk-type time ticks)
   (chunk-type control intention button)
-  (chunk-type platform-record x y width height)
+  (chunk-type platform-record name x y width height)
   (chunk-type time ticks)
 
     ;; speed and expand are reserver for future use
@@ -172,7 +172,7 @@
             state free
     ==>
         =goal>
-            state i-dont-know-who-i-am
+            state initialize-platforms
         !output! ("---- 0.0.0 Disc found, game initialized")
     )
 
@@ -236,6 +236,7 @@
         ;; Create a new chunk in declarative memory
         +imaginal>
             isa platform-record
+            name platform
             x =x
             y =y
             width =w
@@ -257,33 +258,21 @@
         ;; Clear the imaginal buffer and commit to DM
         -imaginal>
         =goal>
-            intention initialize-platforms
+            intention find-platforms
         !output! ("---- 0.3.1 Committed platform to declarative memory")
     )
 
-    (p platform-finish-platforms
+    ;; Key fix: Handle the case when no more platforms are found
+    (p platform-find-failure
         =goal>
-            intention initialize-platforms
+            intention find-platforms
         ?visual-location>
             state error
-        =imaginal>
     ==>
         =goal>
             state i-dont-know-who-i-am
-        !output! ("---- 0.4.0 Finished detecting platforms, now i-dont-know-who-i-am")
-    )
-
-    ;; todo : remove this production
-    (p platform-check-stored-platforms
-        =goal>
-            state i-dont-know-who-i-am
-        ?retrieval>
-            state free
-    ==>
-        !output! ("---- Checking stored platforms in DM")
-        !eval! (dm)  ;; This will print all chunks in declarative memory
-        =goal>
-            state i-dont-know-who-i-am
+            intention nil
+        !output! ("---- 0.4.0 No more platforms found, moving to next state")
     )
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -431,7 +420,6 @@
         ?visual>
             state free
         ;; - visual-location>  ;; Ensure this is the first match (simplistic closest check)
-        ;; todo : maybe we could start any diamond location, search for the nearest one anyway
     ==>
         +visual>
             cmd move-attention
