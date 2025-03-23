@@ -164,11 +164,12 @@
     ;; Check obstacles and retarget if needed
     (cond
       ;; Check if there's a gap between disc and diamond
-      ((is-gap-between-for-disc disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
-       (multiple-value-bind (new-target-x new-target-y)
-           (retarget-jump-over-gap disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
-         (setq target-x new-target-x
-               target-y new-target-y)))
+      ;; todo : implment this throw unknow exception, todo it later
+      ;; ((is-gap-between-for-disc disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
+      ;;  (multiple-value-bind (new-target-x new-target-y)
+      ;;      (retarget-jump-over-gap disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
+      ;;    (setq target-x new-target-x
+      ;;          target-y new-target-y)))
       
       ;; Check if rectangle is between disc and diamond
       ((is-rect-between disc-x disc-y diamond-x diamond-y rect-x rect-y rect-height)
@@ -242,10 +243,6 @@
           ((< rect-top diamond-y) "wwww")
           (t "s"))))))
 
-
-;; todo : add tempral buffer for the action
-;; ex: .  waiting 0.5 second, then do action, and 1-9 is 1-9 seconds
-;;    
 (defun convert-wasd-to-move (action)
             "Convert WASD string to move action symbols"
             (cond ((string= action "w") 'move-up)
