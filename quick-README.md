@@ -42,6 +42,8 @@ navigation-functions.lisp
 Functions that assist the ACT-R agent in determining how to navigate through the GeoMates environment. 
 It includes functions for detecting platform gaps, finding the next action for both disc and rectangle agents to move toward diamonds, and converting movement commands between different formats (WASD strings to action symbols).
 
+model-deepseek-agent1.lisp
+The model file implements an ACT-R agent production that can identify its character type (disc or rectangle), locate objects in the environment, and execute a series of planned movements to collect diamonds. It uses a state-based approach with intention tracking and action queues to coordinate movement and try cooperation between agents.
 ```
 
 ## Key Files
