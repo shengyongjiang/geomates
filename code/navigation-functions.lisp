@@ -26,23 +26,25 @@
       (t (values 0 0)))))
 
 (defun find-gap-for-disc (disc-x disc-y rect-x rect-y rect-width rect-height)
-  "Find platform gaps that a disc needs to consider when navigating.
-   Uses the rectangle's position to determine the platform level.
-   Returns the left and right x-coordinates of the gap."
-  (let* ((rect-bottom (- rect-y (/ rect-height 2)))
+  "Find platform gaps that are relevant for disc navigation.
+   Returns the left and right x-coordinates of the gap.
+   Uses disc's y-position instead of rect-bottom to determine relevant gaps."
+  (let* ((disc-y-level disc-y)
          (buffer 2))
     
     ;; For now, we'll use the same logic as the rectangle version
     ;; but this could be customized for disc-specific detection
     (cond
-      ;; If rect-bottom is around 21 (with buffer of 2)
-      ((and (>= rect-bottom (- 21 buffer))
-            (<= rect-bottom (+ 21 buffer)))
+      ;; If disc is around y=21 (with buffer of 2)
+      ((and (>= disc-y-level (- 21 buffer))
+            (<= disc-y-level (+ 21 buffer)))
+
        (values 30 40))
       
-      ;; If rect-bottom is around 1 (with buffer of 2)
-      ((and (>= rect-bottom (- 1 buffer))
-            (<= rect-bottom (+ 1 buffer)))
+      ;; If disc is around y=1 (with buffer of 2)
+      ((and (>= disc-y-level (- 1 buffer))
+            (<= disc-y-level (+ 1 buffer)))
+
        (values 0 0))
       
       ;; Default case
@@ -225,7 +227,7 @@
       ((> disc-x target-x) "a.")
       
       ;; Default case
-      ("w."))))
+      (t "w."))))
 
 (defun find-next-action-rect-queue (rect-x rect-y rect-width rect-height diamond-x diamond-y)
   "Determine the next action for the rectangle to move toward the diamond."
@@ -289,4 +291,4 @@
    Returns 'queue-query-move if queue has items, 'reload-query-move otherwise."
   (if (>= (length next-action-queue) 1)
       'queue-query-move
-      'reload-query-move))                  
+      'reload-query-move))
