@@ -6,8 +6,5 @@
 
 (load-act-r-model "code/model-shengyong-jiang-agent.lisp")
 
-(setf *actr-instance-id* "AGENT-INSTANCE")
-(format t "~%Running with ACT-R instance ID: ~a~%" *actr-instance-id*)
-
 (run-environment)  ;; must enable this to run two agents in the same time machine
-(geomates-experiment)
+;; (geomates-experiment)

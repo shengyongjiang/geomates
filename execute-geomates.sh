@@ -91,7 +91,7 @@ send_command 1 "sleep 1.5 && open -a \"Google Chrome\" \"http://localhost:8081/v
 
 # send_command 3 "cd $WORKING_DIR && sbcl --load \"actr7.x/load-act-r.lisp\" --load \"geomates/act-r-experiment.lisp\"  --load \"models/navigation-functions.lisp\"   --eval '(load-act-r-model \""models/model-dummy.lisp"\")' --eval '(progn (sleep 1) (run 60) (run-environment))'"
 send_command 2 "sleep 2.5 && sbcl --load \"agent.lisp\""
-# send_command 3 "sleep 7.5 && sbcl --load \"agent2.lisp\""
+# send_command 3 "sleep 5.5 && sbcl --load \"agent2.lisp\""
 # send_command 3 "sleep 2.5 && telnet localhost 45678"
 
 
