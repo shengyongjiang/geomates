@@ -283,7 +283,7 @@
         ;; !output! ("---- x.0.0 Searching for yellow disc with specific criteria")
     )
 
-    (p attend-to-yellow-dis0c
+    (p attend-to-yellow-disc
         =goal>
             intention       update-ui
             sub-intention   searching-for-yellow-disc
@@ -489,7 +489,7 @@
             state free
         =temporal>
             ticks =ticks
-            >= ticks 20
+            > ticks 20
     ==>
         -temporal>
         =goal>
@@ -751,6 +751,30 @@
     )
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (p perform-wait-up
+        =goal>
+            intention       wait-up
+    ==>
+        +temporal>
+            isa         time
+            ticks       0
+        =goal>
+            intention   waiting-for-move
+        !output! ("---- 3.1.3 Waiting for 0.5 seconds before moving")
+    )
+
+    (p perform-wait-complete
+        =goal>
+            intention       waiting-for-move
+        =temporal>
+            isa         time
+            ticks       5
+    ==>
+        =goal>
+            intention   queue-query-move
+        !output! ("---- 3.1.3.1 Wait complete, now querying next move")
+    )
+
     (p perform-move-up
         =goal>
             intention       move-up
