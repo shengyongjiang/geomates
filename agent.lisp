@@ -4,7 +4,7 @@
 
 (load "code/navigation-functions.lisp")
 
-(load-act-r-model "code/model-shengyong-jiang-agent.lisp")
+(load-act-r-model "code/model-deepseek-agent1.lisp")
 
 (run-environment)  ;; must enable this to run two agents in the same time machine
 (geomates-experiment)

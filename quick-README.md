@@ -6,7 +6,7 @@ Other steps are the same, except for running the ACT-R agent is called by:
 `sbcl --load "agent.lisp"`
 
 (Replacement of
-`sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "code/model-shengyong-jiang.lisp")'
+`sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "code/model-deepseek-agent1.lisp")'
 `)
 
 ## Folder/files structure
@@ -30,12 +30,18 @@ Assume ACT-R, box2d and geomates server are all set up, with the below folder st
 │   └── etc.
 │
 ├── code/                         # Agent code folder
-│   ├── model-shengyong-jiang.lisp          # Enhanced ACT-R agent model
-│   └── navigation-functions.lisp  # Helper functions for navigation
+│   ├── model-deepseek-agent1.lisp
+│   └── navigation-functions.lisp
 │
 ├── agent.lisp                    # Main entry point for running the ACT-R agent
 │
 └── Dockerfile                    # Docker configuration for containerized setup
+
+
+navigation-functions.lisp
+Functions that assist the ACT-R agent in determining how to navigate through the GeoMates environment. 
+It includes functions for detecting platform gaps, finding the next action for both disc and rectangle agents to move toward diamonds, and converting movement commands between different formats (WASD strings to action symbols).
+
 ```
 
 ## Key Files

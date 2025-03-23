@@ -1,7 +1,7 @@
 ## 提供的文件
 
     - Practical_description_coop_int_agents_WS245_fin.pdf    是需求文档, 不可修改
-    - model-shengyong-jiang.lisp        是我的ACT-R文件, 可修改
+    - model-deepseek-agent1.lisp        是我的ACT-R文件, 可修改
     - navigation-functions.lisp         是我的函数文件, 可修改        
     - levels.lisp                       是关卡文件, 不可修改
     - geomates.lisp                     game file
