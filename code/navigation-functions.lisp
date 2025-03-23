@@ -4,7 +4,7 @@
 ;; Platform gap detection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun find_gap (rect-x rect-y rect-width rect-height)
+(defun find-gap-for-rect (rect-x rect-y rect-width rect-height)
   "Find platform gaps at the level of rect-bottom.
    Returns the left and right x-coordinates of the gap.
    Debug version: only handles specific cases with buffer of 2."
@@ -25,9 +25,152 @@
       ;; Default case
       (t (values 0 0)))))
 
+(defun find-gap-for-disc (disc-x disc-y rect-x rect-y rect-width rect-height)
+  "Find platform gaps that a disc needs to consider when navigating.
+   Uses the rectangle's position to determine the platform level.
+   Returns the left and right x-coordinates of the gap."
+  (let* ((rect-bottom (- rect-y (/ rect-height 2)))
+         (buffer 2))
+    
+    ;; For now, we'll use the same logic as the rectangle version
+    ;; but this could be customized for disc-specific detection
+    (cond
+      ;; If rect-bottom is around 21 (with buffer of 2)
+      ((and (>= rect-bottom (- 21 buffer))
+            (<= rect-bottom (+ 21 buffer)))
+       (values 30 40))
+      
+      ;; If rect-bottom is around 1 (with buffer of 2)
+      ((and (>= rect-bottom (- 1 buffer))
+            (<= rect-bottom (+ 1 buffer)))
+       (values 0 0))
+      
+      ;; Default case
+      (t (values 0 0)))))
+
+(defun is-gap-between (obj-x obj-y target-x target-y rect-x rect-y rect-width rect-height)
+  "Check if there's a gap between the object and target that needs to be considered.
+   Returns true if a gap exists in the path, false otherwise."
+  (let* ((rect-bottom (- rect-y (/ rect-height 2))))
+    (multiple-value-bind (gap-left gap-right)
+        (find-gap-for-rect rect-x rect-y rect-width rect-height)
+      (let ((gap-exists (> gap-right gap-left))
+            (obj-moving-right (< obj-x target-x))
+            (obj-moving-left (> obj-x target-x)))
+        ;; Check if:
+        ;; 1. A gap exists
+        ;; 2. Object and target are at similar heights (near platform level)
+        ;; 3. The object needs to cross the gap to reach the target
+        (and gap-exists
+             (or 
+              ;; Object moving right needs to cross gap
+              (and obj-moving-right
+                   (< obj-x gap-left)
+                   (> target-x gap-right))
+              ;; Object moving left needs to cross gap
+              (and obj-moving-left
+                   (> obj-x gap-right)
+                   (< target-x gap-left))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Navigation decision functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun is-rect-between (disc-x disc-y diamond-x diamond-y rect-x rect-y rect-height)
+  "Check if rectangle is between disc and diamond.
+   Returns true if rectangle blocks the path, false otherwise."
+  (let ((rect-top (+ rect-y (/ rect-height 2))))
+    (or 
+     ;; Disc is left of diamond with rectangle in between
+     (and (< disc-x diamond-x) 
+          (> rect-x disc-x) 
+          (< rect-x diamond-x)
+          (< disc-y rect-top))
+     ;; Disc is right of diamond with rectangle in between
+     (and (> disc-x diamond-x) 
+          (< rect-x disc-x) 
+          (> rect-x diamond-x)
+          (< disc-y rect-top)))))
+
+(defun retarget-jump-to-rect (disc-x disc-y rect-x rect-y rect-width rect-height)
+  "Calculate new target coordinates to jump over the rectangle.
+   Returns new target-x and target-y values."
+  (let* ((rect-left (- rect-x (/ rect-width 2)))
+         (rect-right (+ rect-x (/ rect-width 2)))
+         (rect-top (+ rect-y (/ rect-height 2))))
+    (cond
+     ;; If disc is left of rectangle
+     ((< disc-x rect-x)
+      (values (- rect-left 2) (+ rect-top 2)))
+     ;; If disc is right of rectangle
+     ((> disc-x rect-x)
+      (values (+ rect-right 2) (+ rect-top 2)))
+     ;; Default case (shouldn't reach here in normal usage)
+     (t (values disc-x (+ rect-top 2))))))
+
+(defun retarget-jump-over-gap (disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
+  "Calculate new target coordinates to jump over a gap between platforms.
+   Returns new target-x and target-y values."
+  (multiple-value-bind (gap-left gap-right)
+      (find-gap-for-disc disc-x disc-y rect-x rect-y rect-width rect-height)
+    (let* ((rect-bottom (- rect-y (/ rect-height 2)))
+           ;; Jump height needed to safely clear the gap
+           (jump-height (+ rect-bottom 5)))
+      (cond
+       ;; If diamond is right and disc is left
+       ((and (> diamond-x disc-x) (< disc-x gap-left))
+        (values (- gap-left 20) jump-height))
+       ;; If diamond is left and disc is right
+       ((and (< diamond-x disc-x) (> disc-x gap-right))
+        (values (+ gap-right 20) jump-height))
+       ;; Default case (shouldn't reach here in normal usage)
+       (t (values disc-x jump-height))))))
+
+(defun is-gap-between-for-rect (rect-x rect-y rect-width rect-height target-x)
+  "Check if there's a gap that the rectangle needs to consider when moving toward target-x.
+   Returns true if a gap exists in the path, false otherwise."
+  (let* ((rect-bottom (- rect-y (/ rect-height 2))))
+    (multiple-value-bind (gap-left gap-right)
+        (find-gap-for-rect rect-x rect-y rect-width rect-height)
+      (let ((gap-exists (> gap-right gap-left))
+            (rect-moving-right (< rect-x target-x))
+            (rect-moving-left (> rect-x target-x)))
+        ;; Check if:
+        ;; 1. A gap exists
+        ;; 2. The rectangle needs to cross the gap to reach the target
+        (and gap-exists
+             (or 
+              ;; Rectangle moving right needs to cross gap
+              (and rect-moving-right
+                   (< rect-x gap-left)
+                   (> target-x gap-right))
+              ;; Rectangle moving left needs to cross gap
+              (and rect-moving-left
+                   (> rect-x gap-right)
+                   (< target-x gap-left))))))))
+
+(defun is-gap-between-for-disc (disc-x disc-y target-x target-y rect-x rect-y rect-width rect-height)
+  "Check if there's a gap between the disc and target that needs to be considered.
+   Returns true if a gap exists in the path, false otherwise."
+  (multiple-value-bind (gap-left gap-right)
+      (find-gap-for-disc disc-x disc-y rect-x rect-y rect-width rect-height)
+    (let ((gap-exists (> gap-right gap-left))
+          (disc-moving-right (< disc-x target-x))
+          (disc-moving-left (> disc-x target-x)))
+      ;; Check if:
+      ;; 1. A gap exists
+      ;; 2. The disc needs to cross the gap to reach the target
+      (and gap-exists
+           (or 
+            ;; Disc moving right needs to cross gap
+            (and disc-moving-right
+                 (< disc-x gap-left)
+                 (> target-x gap-right))
+            ;; Disc moving left needs to cross gap
+            (and disc-moving-left
+                 (> disc-x gap-right)
+                 (< target-x gap-left)))))))
+
 (defun find-next-action-disc-queue (diamond-x diamond-y disc-x disc-y rect-x rect-y rect-width rect-height)
   "Determine the next action for the disc to move toward the diamond.
    Returns one of: 'w:move-up, 's:move-down, 'a:move-left, 'd:move-right, 'right-high-jump, 'left-high-jump, or nil if at the target.
@@ -46,25 +189,21 @@
          (target-y diamond-y) ;; Set target-y to diamond-y as first step
         )
     
-    ;; Check if rectangle is between disc and diamond
+    ;; Check obstacles and retarget if needed
     (cond
-      ;; If disc is left of diamond (disc-x < diamond-x)
-      ((and (< disc-x diamond-x) 
-            (> rect-x disc-x) 
-            (< rect-x diamond-x)
-            (< disc-y rect-top))  ; Only if disc is below rect-top
-       ;; If rect is right of disc (which it is in this condition)
-       (setq target-x (- rect-left 2)
-             target-y (+ rect-top 2)))
-            
-      ;; If disc is right of diamond (disc-x > diamond-x)
-      ((and (> disc-x diamond-x) 
-            (< rect-x disc-x) 
-            (> rect-x diamond-x)
-            (< disc-y rect-top))  ; Only if disc is below rect-top
-       ;; If rect is left of disc (which it is in this condition)
-       (setq target-x (+ rect-right 2)
-             target-y (+ rect-top 2)))
+      ;; Check if there's a gap between disc and diamond
+      ((is-gap-between-for-disc disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
+       (multiple-value-bind (new-target-x new-target-y)
+           (retarget-jump-over-gap disc-x disc-y diamond-x diamond-y rect-x rect-y rect-width rect-height)
+         (setq target-x new-target-x
+               target-y new-target-y)))
+      
+      ;; Check if rectangle is between disc and diamond
+      ((is-rect-between disc-x disc-y diamond-x diamond-y rect-x rect-y rect-height)
+       (multiple-value-bind (new-target-x new-target-y)
+           (retarget-jump-to-rect disc-x disc-y rect-x rect-y rect-width rect-height)
+         (setq target-x new-target-x
+               target-y new-target-y)))
              
       ;; If disc is above rect-top, target remains diamond
       ((> disc-y rect-top)
@@ -72,7 +211,6 @@
              target-y diamond-y)))
 
     (cond
-
       ;; todo :
       ;; 1. if disc and diamond are some platfrom, then do
       ;; 2. is disc is above/under diamond platfrom, then do move to the platform
@@ -98,7 +236,7 @@
          (stable-width (/ rect-width 4)))
     
     (multiple-value-bind (platform-gap-x-left platform-gap-x-right)
-        (find_gap rect-x rect-y rect-width rect-height)
+        (find-gap-for-rect rect-x rect-y rect-width rect-height)
     
       (let ((gap-size (- platform-gap-x-right platform-gap-x-left))
             (gap-center (/ (+ platform-gap-x-left platform-gap-x-right) 2)))
