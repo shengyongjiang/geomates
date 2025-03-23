@@ -7,4 +7,4 @@
 (load-act-r-model "code/model-shengyong-jiang-agent.lisp")
 
 (run-environment)  ;; must enable this to run two agents in the same time machine
-;; (geomates-experiment)
+(geomates-experiment)

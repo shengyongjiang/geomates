@@ -189,13 +189,13 @@
       ;; 2. is disc is above/under diamond platfrom, then do move to the platform
       ((and (< disc-y target-y)
             (< (abs (- disc-x target-x)) buffer-distance))
-       (cond ((< disc-x target-x) "w.d")
-             ((> disc-x target-x) "w.a") 
-             (t "w.")))
+       (cond ((< disc-x target-x) "w.d.d")
+             ((> disc-x target-x) "w.a.a") 
+             (t "w.d.d.d")))
 
       ;; Regular horizontal movement
-      ((< disc-x target-x) "d.")
-      ((> disc-x target-x) "a.")
+      ((< disc-x target-x) "d.d.")
+      ((> disc-x target-x) "a.a.")
       
       ;; Default case
       (t "w."))))

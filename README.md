@@ -91,7 +91,7 @@ cd path/to/geomates
 # find actr7.x -name "*.fasl" -delete
 # Start SBCL with ACT-R and the GeoMates experiment
 
-sbcl --load "entry.lisp"
+sbcl --load "agent.lisp"
 # the above lisp contain the below diffrent lisp files
 # sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "geomates/model-dummy.lisp")'
 ```

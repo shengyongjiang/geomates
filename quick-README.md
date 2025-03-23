@@ -3,7 +3,7 @@
 ## Running our project
 
 Other steps are the same, except for running the ACT-R agent is called by:
-`sbcl --load "entry.lisp"`
+`sbcl --load "agent.lisp"`
 
 (Replacement of
 `sbcl --load "actr7.x/load-act-r.lisp" --load "geomates/act-r-experiment.lisp" --eval '(load-act-r-model "code/model-shengyong-jiang.lisp")'
@@ -33,13 +33,13 @@ Assume ACT-R, box2d and geomates server are all set up, with the below folder st
 │   ├── model-shengyong-jiang.lisp          # Enhanced ACT-R agent model
 │   └── navigation-functions.lisp  # Helper functions for navigation
 │
-├── entry.lisp                    # Main entry point for running the ACT-R agent
+├── agent.lisp                    # Main entry point for running the ACT-R agent
 │
 └── Dockerfile                    # Docker configuration for containerized setup
 ```
 
 ## Key Files
 
-- **entry.lisp**: The main entry point that loads ACT-R, the experiment interface, navigation functions, and the agent model.
+- **agent.lisp**: The main entry point that loads ACT-R, the experiment interface, navigation functions, and the agent model.
 - **code/model-dummy.lisp**: The ACT-R agent model with platform detection and navigation capabilities.
 - **code/navigation-functions.lisp**: Helper functions for agent navigation and decision-making.
